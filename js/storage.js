@@ -159,12 +159,19 @@ function validateRegistration(form, data) {
 }
 
 function fillForm(form, record) {
-  form.name.value = record.name || "";
-  form.phone.value = record.phone || "";
-  form.email.value = record.email || "";
+  const setValue = (selector, value) => {
+    const el = form.querySelector(selector);
+    if (el) el.value = value || "";
+  };
 
+  setValue('input[name="name"]', record.name);
+  setValue('input[name="phone"]', record.phone);
+  setValue('input[name="email"]', record.email);
+  setValue('input[name="last5"]', record.last5);
+
+  const normalizedDates = (record.dates || []).map(String);
   form.querySelectorAll('input[name="dates"]').forEach((el) => {
-    el.checked = (record.dates || []).includes(el.value);
+    el.checked = normalizedDates.includes(el.value);
   });
 
   const cat = form.querySelector(`input[name="category"][value="${record.category}"]`);
@@ -173,7 +180,6 @@ function fillForm(form, record) {
   const pay = form.querySelector(`input[name="payment"][value="${record.payment}"]`);
   if (pay) pay.checked = true;
 
-  form.last5.value = record.last5 || "";
   form.dispatchEvent(new Event("change", { bubbles: true }));
 }
 

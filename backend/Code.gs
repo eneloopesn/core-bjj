@@ -2,7 +2,7 @@
  * CORE 巴西柔術報名 API
  * 建議：從 Google 試算表 → 擴充功能 → Apps Script 貼上此檔後部署為「網頁應用程式」
  * 執行身分：我本人 / 存取權：任何人
- * 部署後把 /exec 網址貼到前端 js/config.js 的 API_URL
+ * 重要：修改程式後請「部署 → 管理部署作業 → 編輯 → 新版本 → 部署」
  */
 
 var SHEET_NAME = "registrations";
@@ -37,7 +37,7 @@ function handleRequest(payload) {
     if (action === "create") return createRegistration_(payload);
     if (action === "find") return findRegistration_(payload);
     if (action === "update") return updateRegistration_(payload);
-    if (action === "ping") return json_({ ok: true, message: "CORE BJJ API ready" });
+    if (action === "ping") return json_({ ok: true, message: "CORE BJJ API ready", version: "name-lookup-v2" });
     return json_({ ok: false, error: "未知的 action" });
   } catch (err) {
     return json_({ ok: false, error: String(err && err.message ? err.message : err) });
@@ -87,6 +87,7 @@ function getSheet_() {
       "createdAt",
       "updatedAt",
     ]);
+    sheet.getRange("A:K").setNumberFormat("@");
   }
   return sheet;
 }
@@ -98,42 +99,109 @@ function calcFee_(category, dates) {
   return count >= 2 ? tier.two : tier.one;
 }
 
+function normalizeName_(value) {
+  return String(value || "")
+    .replace(/\u3000/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function normalizePhone_(value) {
+  var phone = String(value == null ? "" : value)
+    .trim()
+    .replace(/\.0$/, "");
+  if (/^9\d{8}$/.test(phone)) phone = "0" + phone;
+  return phone;
+}
+
 function parseDates_(value) {
-  if (Object.prototype.toString.call(value) === "[object Array]") return value;
+  if (Object.prototype.toString.call(value) === "[object Array]") {
+    return value
+      .map(function (item) {
+        return normalizeDateToken_(item);
+      })
+      .filter(Boolean);
+  }
+  if (Object.prototype.toString.call(value) === "[object Date]") {
+    var one = normalizeDateToken_(value);
+    return one ? [one] : [];
+  }
   if (!value) return [];
   return String(value)
     .split(",")
     .map(function (s) {
-      return s.trim();
+      return normalizeDateToken_(s);
     })
     .filter(Boolean);
 }
 
+function normalizeDateToken_(value) {
+  if (value == null || value === "") return "";
+  if (Object.prototype.toString.call(value) === "[object Date]" && !isNaN(value.getTime())) {
+    return Utilities.formatDate(value, Session.getScriptTimeZone() || "Asia/Taipei", "yyyy-MM-dd");
+  }
+  var text = String(value).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text;
+
+  var parsed = new Date(text);
+  if (!isNaN(parsed.getTime())) {
+    return Utilities.formatDate(parsed, Session.getScriptTimeZone() || "Asia/Taipei", "yyyy-MM-dd");
+  }
+  return text;
+}
+
 function rowToRecord_(row) {
   return {
-    id: row[0],
-    name: row[1],
-    phone: String(row[2] || ""),
+    id: normalizeName_(row[0]) || normalizeName_(row[1]),
+    name: normalizeName_(row[1]) || normalizeName_(row[0]),
+    phone: normalizePhone_(row[2]),
     email: row[3] || "",
     dates: parseDates_(row[4]),
     category: row[5],
     payment: row[6],
-    last5: row[7] || "",
+    last5: row[7] ? String(row[7]).replace(/\.0$/, "") : "",
     fee: Number(row[8]) || 0,
     createdAt: row[9],
     updatedAt: row[10],
   };
 }
 
+function namesMatch_(a, b) {
+  return normalizeName_(a) === normalizeName_(b) && normalizeName_(a) !== "";
+}
+
 function findRowIndex_(sheet, name) {
   var values = sheet.getDataRange().getValues();
-  var normalizedName = String(name || "").trim();
+  var target = normalizeName_(name);
+  if (!target) return null;
+
   for (var i = 1; i < values.length; i++) {
-    if (String(values[i][0] || "").trim() === normalizedName) {
+    var idCell = values[i][0];
+    var nameCell = values[i][1];
+    if (namesMatch_(nameCell, target) || namesMatch_(idCell, target)) {
       return { index: i + 1, record: rowToRecord_(values[i]) };
     }
   }
   return null;
+}
+
+function writeRecordRow_(sheet, rowIndex, record) {
+  sheet.getRange(rowIndex, 1, 1, 11).setNumberFormat("@");
+  sheet.getRange(rowIndex, 1, 1, 11).setValues([
+    [
+      String(record.id),
+      String(record.name),
+      String(record.phone),
+      String(record.email || ""),
+      record.dates.join(","),
+      String(record.category),
+      String(record.payment),
+      String(record.last5 || ""),
+      String(record.fee),
+      String(record.createdAt),
+      String(record.updatedAt),
+    ],
+  ]);
 }
 
 function createRegistration_(payload) {
@@ -161,27 +229,14 @@ function createRegistration_(payload) {
     updatedAt: now,
   };
 
-  sheet.appendRow([
-    record.id,
-    record.name,
-    record.phone,
-    record.email,
-    record.dates.join(","),
-    record.category,
-    record.payment,
-    record.last5,
-    record.fee,
-    record.createdAt,
-    record.updatedAt,
-  ]);
-
+  writeRecordRow_(sheet, sheet.getLastRow() + 1, record);
   sendNoticeEmail_(record, "create");
   return json_({ ok: true, record: record });
 }
 
 function findRegistration_(payload) {
   var sheet = getSheet_();
-  var name = payload.name || payload.id;
+  var name = payload.name || payload.id || payload.lookupName;
   var found = findRowIndex_(sheet, name);
   if (!found) return json_({ ok: false, error: "找不到報名資料" });
   return json_({ ok: true, record: found.record });
@@ -197,7 +252,7 @@ function updateRegistration_(payload) {
   var found = findRowIndex_(sheet, lookupName);
   if (!found) return json_({ ok: false, error: "找不到報名資料" });
 
-  if (data.name !== found.record.name && findRowIndex_(sheet, data.name)) {
+  if (!namesMatch_(data.name, found.record.name) && findRowIndex_(sheet, data.name)) {
     return json_({ ok: false, error: "此姓名已有其他報名資料" });
   }
 
@@ -216,22 +271,7 @@ function updateRegistration_(payload) {
     updatedAt: now,
   };
 
-  sheet.getRange(found.index, 1, 1, 11).setValues([
-    [
-      record.id,
-      record.name,
-      record.phone,
-      record.email,
-      record.dates.join(","),
-      record.category,
-      record.payment,
-      record.last5,
-      record.fee,
-      record.createdAt,
-      record.updatedAt,
-    ],
-  ]);
-
+  writeRecordRow_(sheet, found.index, record);
   sendNoticeEmail_(record, "update");
   return json_({ ok: true, record: record });
 }
@@ -240,8 +280,8 @@ function normalizeData_(payload) {
   var dates = parseDates_(payload.dates);
   var payment = String(payload.payment || "").trim();
   return {
-    name: String(payload.name || "").trim(),
-    phone: String(payload.phone || "").trim(),
+    name: normalizeName_(payload.name),
+    phone: normalizePhone_(payload.phone),
     email: String(payload.email || "").trim(),
     dates: dates,
     category: String(payload.category || "").trim(),

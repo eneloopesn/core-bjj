@@ -23,10 +23,16 @@ window.BJJ_CONFIG = {
 
 7. 把更新後的網站推上 GitHub（或重新上傳 `config.js`）。
 
-## 測試
+## 更新程式後（很重要）
 
-瀏覽器開啟：
+只按儲存不會更新線上 API。請：
+
+1. 貼上最新 `Code.gs` 並儲存
+2. **部署 → 管理部署作業**
+3. 點鉛筆圖示 → **版本** 選 **新版本** → **部署**
+
+完成後可用下面測試確認版本：
 
 `你的API網址?action=ping`
 
-若看到 `{"ok":true,"message":"CORE BJJ API ready"}` 即成功。
+應看到 `"version":"name-lookup-v2"`。
