@@ -2,7 +2,7 @@
   const form = document.getElementById("reg-form");
   const summary = document.getElementById("fee-summary");
   const dialog = document.getElementById("success-dialog");
-  const successId = document.getElementById("success-id");
+  const successName = document.getElementById("success-name");
   const formError = document.getElementById("form-error");
   const submitBtn = form.querySelector('button[type="submit"]');
 
@@ -19,7 +19,7 @@
     try {
       BjjStore.setBusy(submitBtn, true, "送出中…");
       const record = await BjjStore.createRegistration(data);
-      successId.textContent = record.id;
+      successName.textContent = record.name;
       const mailNote = document.getElementById("success-mail-note");
       if (mailNote) {
         mailNote.hidden = !record.email;

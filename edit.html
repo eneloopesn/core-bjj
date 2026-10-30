@@ -24,21 +24,21 @@
   <main class="page">
     <div class="page-intro">
       <h1>修改報名資料</h1>
-      <p>請輸入報名編號與手機號碼查詢後再修改。</p>
+      <p>請輸入報名時的姓名與手機號碼查詢後再修改。</p>
     </div>
 
     <form id="lookup-form" class="form form-compact" novalidate>
       <fieldset>
         <legend>查詢報名</legend>
         <label>
-          報名編號
-          <input type="text" name="id" required maxlength="12" placeholder="例如 CBJ-XXXXXX" autocomplete="off" />
+          姓名
+          <input type="text" name="name" required maxlength="40" placeholder="報名時填寫的姓名" autocomplete="name" />
         </label>
         <label>
           手機
           <input type="tel" name="phone" required pattern="09\d{8}" maxlength="10" inputmode="numeric" placeholder="09xxxxxxxx" />
         </label>
-        <p class="field-error" id="lookup-error" hidden>找不到符合的報名資料，請確認編號與手機。</p>
+        <p class="field-error" id="lookup-error" hidden>找不到符合的報名資料，請確認姓名與手機。</p>
         <button type="submit" class="btn btn-primary btn-block">查詢</button>
       </fieldset>
     </form>

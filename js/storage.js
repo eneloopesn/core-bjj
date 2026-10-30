@@ -60,15 +60,15 @@ async function createRegistration(data) {
   return result.record;
 }
 
-async function findRegistration(id, phone) {
-  const result = await apiRequest({ action: "find", id, phone });
+async function findRegistration(name, phone) {
+  const result = await apiRequest({ action: "find", name, phone });
   return result.record;
 }
 
-async function updateRegistration(id, lookupPhone, data) {
+async function updateRegistration(lookupName, lookupPhone, data) {
   const result = await apiRequest({
     action: "update",
-    id,
+    lookupName,
     lookupPhone,
     ...data,
   });

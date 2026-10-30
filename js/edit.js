@@ -8,16 +8,18 @@
   const cancelBtn = document.getElementById("cancel-edit");
   const lookupBtn = lookupForm.querySelector('button[type="submit"]');
   const saveBtn = editForm.querySelector('button[type="submit"]');
+  const lookupNameInput = lookupForm.querySelector('input[name="name"]');
+  const lookupPhoneInput = lookupForm.querySelector('input[name="phone"]');
 
-  let currentId = null;
+  let currentName = null;
   let currentPhone = null;
 
   BjjStore.bindFeeSummary(editForm, summary);
   BjjStore.bindPaymentToggle(editForm);
 
   const params = new URLSearchParams(location.search);
-  if (params.get("id")) {
-    lookupForm.id.value = params.get("id");
+  if (params.get("name")) {
+    lookupNameInput.value = params.get("name");
   }
 
   lookupForm.addEventListener("submit", async (e) => {
@@ -30,20 +32,20 @@
       return;
     }
 
-    const id = lookupForm.id.value.trim();
-    const phone = lookupForm.phone.value.trim();
+    const name = lookupNameInput.value.trim();
+    const phone = lookupPhoneInput.value.trim();
 
     try {
       BjjStore.setBusy(lookupBtn, true, "查詢中…");
-      const record = await BjjStore.findRegistration(id, phone);
-      currentId = record.id;
+      const record = await BjjStore.findRegistration(name, phone);
+      currentName = record.name;
       currentPhone = record.phone;
       BjjStore.fillForm(editForm, record);
       editForm.hidden = false;
       editForm.scrollIntoView({ behavior: "smooth", block: "start" });
     } catch (err) {
       editForm.hidden = true;
-      lookupError.textContent = err.message || "找不到符合的報名資料，請確認編號與手機。";
+      lookupError.textContent = err.message || "找不到符合的報名資料，請確認姓名與手機。";
       lookupError.hidden = false;
     } finally {
       BjjStore.setBusy(lookupBtn, false);
@@ -52,7 +54,7 @@
 
   editForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (!currentId) return;
+    if (!currentName) return;
     if (formError) formError.hidden = true;
 
     const data = BjjStore.readFormData(editForm);
@@ -60,9 +62,11 @@
 
     try {
       BjjStore.setBusy(saveBtn, true, "儲存中…");
-      const updated = await BjjStore.updateRegistration(currentId, currentPhone, data);
+      const updated = await BjjStore.updateRegistration(currentName, currentPhone, data);
+      currentName = updated.name;
       currentPhone = updated.phone;
-      lookupForm.phone.value = updated.phone;
+      lookupNameInput.value = updated.name;
+      lookupPhoneInput.value = updated.phone;
       const mailNote = document.getElementById("saved-mail-note");
       if (mailNote) {
         mailNote.hidden = !updated.email;
@@ -80,7 +84,7 @@
 
   cancelBtn.addEventListener("click", () => {
     editForm.hidden = true;
-    currentId = null;
+    currentName = null;
     currentPhone = null;
     editForm.reset();
     if (formError) formError.hidden = true;

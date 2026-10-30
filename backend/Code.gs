@@ -98,11 +98,6 @@ function calcFee_(category, dates) {
   return count >= 2 ? tier.two : tier.one;
 }
 
-function generateId_() {
-  var part = Utilities.getUuid().replace(/-/g, "").slice(0, 6).toUpperCase();
-  return "CBJ-" + part;
-}
-
 function parseDates_(value) {
   if (Object.prototype.toString.call(value) === "[object Array]") return value;
   if (!value) return [];
@@ -130,15 +125,13 @@ function rowToRecord_(row) {
   };
 }
 
-function findRowIndex_(sheet, id, phone) {
+function findRowIndex_(sheet, name, phone) {
   var values = sheet.getDataRange().getValues();
-  var normalizedId = String(id || "")
-    .trim()
-    .toUpperCase();
+  var normalizedName = String(name || "").trim();
   var normalizedPhone = String(phone || "").trim();
   for (var i = 1; i < values.length; i++) {
     if (
-      String(values[i][0] || "").toUpperCase() === normalizedId &&
+      String(values[i][0] || "").trim() === normalizedName &&
       String(values[i][2] || "") === normalizedPhone
     ) {
       return { index: i + 1, record: rowToRecord_(values[i]) };
@@ -153,9 +146,13 @@ function createRegistration_(payload) {
   if (!validation.ok) return json_(validation);
 
   var sheet = getSheet_();
+  if (findRowIndex_(sheet, data.name, data.phone)) {
+    return json_({ ok: false, error: "此姓名與手機已報名過，請改至「修改資料」頁面更新" });
+  }
+
   var now = new Date().toISOString();
   var record = {
-    id: generateId_(),
+    id: data.name,
     name: data.name,
     phone: data.phone,
     email: data.email,
@@ -188,7 +185,8 @@ function createRegistration_(payload) {
 
 function findRegistration_(payload) {
   var sheet = getSheet_();
-  var found = findRowIndex_(sheet, payload.id, payload.phone);
+  var name = payload.name || payload.id;
+  var found = findRowIndex_(sheet, name, payload.phone);
   if (!found) return json_({ ok: false, error: "找不到報名資料" });
   return json_({ ok: true, record: found.record });
 }
@@ -199,12 +197,20 @@ function updateRegistration_(payload) {
   if (!validation.ok) return json_(validation);
 
   var sheet = getSheet_();
-  var found = findRowIndex_(sheet, payload.id, payload.lookupPhone || payload.phone);
+  var lookupName = payload.lookupName || payload.name || payload.id;
+  var found = findRowIndex_(sheet, lookupName, payload.lookupPhone || payload.phone);
   if (!found) return json_({ ok: false, error: "找不到報名資料" });
+
+  if (
+    data.name !== found.record.name &&
+    findRowIndex_(sheet, data.name, data.phone)
+  ) {
+    return json_({ ok: false, error: "此姓名與手機已有其他報名資料" });
+  }
 
   var now = new Date().toISOString();
   var record = {
-    id: found.record.id,
+    id: data.name,
     name: data.name,
     phone: data.phone,
     email: data.email,
@@ -290,12 +296,11 @@ function sendNoticeEmail_(record, type) {
   if (!record.email) return;
   var isCreate = type === "create";
   var subject = isCreate
-    ? "【CORE BJJ】報名成功通知 " + record.id
-    : "【CORE BJJ】報名資料已更新 " + record.id;
+    ? "【CORE BJJ】報名成功通知 " + record.name
+    : "【CORE BJJ】報名資料已更新 " + record.name;
   var body = [
     isCreate ? "您好，已收到您的報名。" : "您好，您的報名資料已更新。",
     "",
-    "報名編號：" + record.id,
     "姓名：" + record.name,
     "手機：" + record.phone,
     "場次：" + datesLabel_(record.dates),
@@ -305,7 +310,7 @@ function sendNoticeEmail_(record, type) {
       (record.last5 ? "（末五碼 " + record.last5 + "）" : ""),
     "費用：NT$ " + record.fee,
     "",
-    "如需修改資料，請至網站「修改資料」頁面，使用報名編號與手機查詢。",
+    "如需修改資料，請至網站「修改資料」頁面，使用姓名與手機查詢。",
     "",
     "CORE 巴西柔術體驗營",
   ].join("\n");
