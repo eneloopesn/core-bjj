@@ -79,16 +79,17 @@
         <legend>繳費方式</legend>
         <div class="radio-row">
           <label class="radio">
-            <input type="radio" name="payment" value="transfer" required checked />
-            <span>匯款</span>
-          </label>
-          <label class="radio">
             <input type="radio" name="payment" value="counter" />
             <span>櫃檯付款</span>
           </label>
+          <label class="radio">
+            <input type="radio" name="payment" value="transfer" required checked />
+            <span>匯款</span>
+          </label>
+          
         </div>
         <div id="transfer-fields" class="transfer-box">
-          <p class="bank-info">匯款帳號：808（玉山銀行）1234-567-890123<br />戶名：CORE 巴西柔術有限公司</p>
+          <p class="bank-info">匯款帳號：808（玉山銀行）1234-567-890123<br />戶名：Jabari 巴西柔術有限公司</p>
           <label>
             匯款帳號末五碼
             <input type="text" name="last5" pattern="\d{5}" maxlength="5" inputmode="numeric" placeholder="例如 12345" />
