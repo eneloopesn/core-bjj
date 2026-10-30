@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>報名｜CORE 巴西柔術體驗營</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="noise" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <a class="brand" href="index.html">CORE<span>BJJ</span></a>
+    <nav class="nav">
+      <a href="index.html">介紹</a>
+      <a href="register.html" class="is-active">報名</a>
+      <a href="edit.html">修改資料</a>
+    </nav>
+  </header>
+
+  <main class="page">
+    <div class="page-intro">
+      <h1>報名表</h1>
+      <p>請填寫以下資料完成報名。送出後會產生報名編號，可用於之後修改資料。</p>
+    </div>
+
+    <form id="reg-form" class="form" novalidate>
+      <fieldset>
+        <legend>基本資料</legend>
+        <label>
+          姓名
+          <input type="text" name="name" required maxlength="40" autocomplete="name" placeholder="請輸入真實姓名" />
+        </label>
+        <label>
+          手機
+          <input type="tel" name="phone" required pattern="09\d{8}" maxlength="10" inputmode="numeric" placeholder="09xxxxxxxx" />
+        </label>
+        <label>
+          電子信箱（選填）
+          <input type="email" name="email" autocomplete="email" placeholder="有填寫才會寄送確認信" />
+        </label>
+        <p class="field-error" id="email-error" hidden>電子信箱格式不正確</p>
+      </fieldset>
+
+      <fieldset>
+        <legend>參加場次</legend>
+        <p class="hint">可單日或兩日皆選</p>
+        <div class="check-row">
+          <label class="check">
+            <input type="checkbox" name="dates" value="2026-11-13" />
+            <span>11/13（五）14:00–17:00</span>
+          </label>
+          <label class="check">
+            <input type="checkbox" name="dates" value="2026-11-14" />
+            <span>11/14（六）14:00–17:00</span>
+          </label>
+        </div>
+        <p class="field-error" id="dates-error" hidden>請至少選擇一天場次</p>
+      </fieldset>
+
+      <fieldset>
+        <legend>身分</legend>
+        <div class="radio-row">
+          <label class="radio">
+            <input type="radio" name="category" value="adult" required checked />
+            <span>成人（12 歲以上）</span>
+          </label>
+          <label class="radio">
+            <input type="radio" name="category" value="child" />
+            <span>兒童（12 歲以下）</span>
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>繳費方式</legend>
+        <div class="radio-row">
+          <label class="radio">
+            <input type="radio" name="payment" value="transfer" required checked />
+            <span>匯款</span>
+          </label>
+          <label class="radio">
+            <input type="radio" name="payment" value="counter" />
+            <span>櫃檯付款</span>
+          </label>
+        </div>
+        <div id="transfer-fields" class="transfer-box">
+          <p class="bank-info">匯款帳號：808（玉山銀行）1234-567-890123<br />戶名：CORE 巴西柔術有限公司</p>
+          <label>
+            匯款帳號末五碼
+            <input type="text" name="last5" pattern="\d{5}" maxlength="5" inputmode="numeric" placeholder="例如 12345" />
+          </label>
+          <p class="field-error" id="last5-error" hidden>選擇匯款時請填寫末五碼</p>
+        </div>
+      </fieldset>
+
+      <div class="summary" id="fee-summary" aria-live="polite">
+        預估費用：<strong>NT$ 0</strong>
+      </div>
+
+      <p class="field-error" id="form-error" hidden></p>
+      <button type="submit" class="btn btn-primary btn-block">送出報名</button>
+    </form>
+
+    <dialog id="success-dialog" class="dialog">
+      <form method="dialog">
+        <h2>報名成功</h2>
+        <p>你的報名編號為：</p>
+        <p class="code" id="success-id"></p>
+        <p class="dialog-note" id="success-mail-note" hidden>確認信已寄至你填寫的電子信箱。</p>
+        <p class="dialog-note">請妥善保存，之後可用編號與手機修改報名資料。</p>
+        <div class="dialog-actions">
+          <button class="btn btn-ghost" value="edit">去修改資料</button>
+          <button class="btn btn-primary" value="home">回到介紹</button>
+        </div>
+      </form>
+    </dialog>
+  </main>
+
+  <footer class="site-footer">
+    <p>CORE 巴西柔術體驗營 · 報名資料僅供活動聯繫使用</p>
+  </footer>
+
+  <script src="js/config.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/register.js"></script>
+</body>
+</html>
