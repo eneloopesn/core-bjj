@@ -9,10 +9,8 @@
   const lookupBtn = lookupForm.querySelector('button[type="submit"]');
   const saveBtn = editForm.querySelector('button[type="submit"]');
   const lookupNameInput = lookupForm.querySelector('input[name="name"]');
-  const lookupPhoneInput = lookupForm.querySelector('input[name="phone"]');
 
   let currentName = null;
-  let currentPhone = null;
 
   BjjStore.bindFeeSummary(editForm, summary);
   BjjStore.bindPaymentToggle(editForm);
@@ -33,19 +31,17 @@
     }
 
     const name = lookupNameInput.value.trim();
-    const phone = lookupPhoneInput.value.trim();
 
     try {
       BjjStore.setBusy(lookupBtn, true, "查詢中…");
-      const record = await BjjStore.findRegistration(name, phone);
+      const record = await BjjStore.findRegistration(name);
       currentName = record.name;
-      currentPhone = record.phone;
       BjjStore.fillForm(editForm, record);
       editForm.hidden = false;
       editForm.scrollIntoView({ behavior: "smooth", block: "start" });
     } catch (err) {
       editForm.hidden = true;
-      lookupError.textContent = err.message || "找不到符合的報名資料，請確認姓名與手機。";
+      lookupError.textContent = err.message || "找不到符合的報名資料，請確認姓名。";
       lookupError.hidden = false;
     } finally {
       BjjStore.setBusy(lookupBtn, false);
@@ -62,11 +58,9 @@
 
     try {
       BjjStore.setBusy(saveBtn, true, "儲存中…");
-      const updated = await BjjStore.updateRegistration(currentName, currentPhone, data);
+      const updated = await BjjStore.updateRegistration(currentName, data);
       currentName = updated.name;
-      currentPhone = updated.phone;
       lookupNameInput.value = updated.name;
-      lookupPhoneInput.value = updated.phone;
       const mailNote = document.getElementById("saved-mail-note");
       if (mailNote) {
         mailNote.hidden = !updated.email;
@@ -85,7 +79,6 @@
   cancelBtn.addEventListener("click", () => {
     editForm.hidden = true;
     currentName = null;
-    currentPhone = null;
     editForm.reset();
     if (formError) formError.hidden = true;
   });

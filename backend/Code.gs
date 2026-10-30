@@ -125,15 +125,11 @@ function rowToRecord_(row) {
   };
 }
 
-function findRowIndex_(sheet, name, phone) {
+function findRowIndex_(sheet, name) {
   var values = sheet.getDataRange().getValues();
   var normalizedName = String(name || "").trim();
-  var normalizedPhone = String(phone || "").trim();
   for (var i = 1; i < values.length; i++) {
-    if (
-      String(values[i][0] || "").trim() === normalizedName &&
-      String(values[i][2] || "") === normalizedPhone
-    ) {
+    if (String(values[i][0] || "").trim() === normalizedName) {
       return { index: i + 1, record: rowToRecord_(values[i]) };
     }
   }
@@ -146,8 +142,8 @@ function createRegistration_(payload) {
   if (!validation.ok) return json_(validation);
 
   var sheet = getSheet_();
-  if (findRowIndex_(sheet, data.name, data.phone)) {
-    return json_({ ok: false, error: "此姓名與手機已報名過，請改至「修改資料」頁面更新" });
+  if (findRowIndex_(sheet, data.name)) {
+    return json_({ ok: false, error: "此姓名已報名過，請改至「修改資料」頁面更新" });
   }
 
   var now = new Date().toISOString();
@@ -186,7 +182,7 @@ function createRegistration_(payload) {
 function findRegistration_(payload) {
   var sheet = getSheet_();
   var name = payload.name || payload.id;
-  var found = findRowIndex_(sheet, name, payload.phone);
+  var found = findRowIndex_(sheet, name);
   if (!found) return json_({ ok: false, error: "找不到報名資料" });
   return json_({ ok: true, record: found.record });
 }
@@ -198,14 +194,11 @@ function updateRegistration_(payload) {
 
   var sheet = getSheet_();
   var lookupName = payload.lookupName || payload.name || payload.id;
-  var found = findRowIndex_(sheet, lookupName, payload.lookupPhone || payload.phone);
+  var found = findRowIndex_(sheet, lookupName);
   if (!found) return json_({ ok: false, error: "找不到報名資料" });
 
-  if (
-    data.name !== found.record.name &&
-    findRowIndex_(sheet, data.name, data.phone)
-  ) {
-    return json_({ ok: false, error: "此姓名與手機已有其他報名資料" });
+  if (data.name !== found.record.name && findRowIndex_(sheet, data.name)) {
+    return json_({ ok: false, error: "此姓名已有其他報名資料" });
   }
 
   var now = new Date().toISOString();
@@ -310,7 +303,7 @@ function sendNoticeEmail_(record, type) {
       (record.last5 ? "（末五碼 " + record.last5 + "）" : ""),
     "費用：NT$ " + record.fee,
     "",
-    "如需修改資料，請至網站「修改資料」頁面，使用姓名與手機查詢。",
+    "如需修改資料，請至網站「修改資料」頁面，使用姓名查詢。",
     "",
     "CORE 巴西柔術體驗營",
   ].join("\n");
