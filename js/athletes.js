@@ -2,6 +2,9 @@
   const root = document.getElementById("athletes-root");
   const countEl = document.getElementById("list-count");
   const errorEl = document.getElementById("list-error");
+  const filterEl = document.getElementById("category-filter");
+
+  let records = [];
 
   function escapeHtml(value) {
     return String(value || "")
@@ -111,26 +114,51 @@
     </section>`;
   }
 
-  function render(records) {
+  function render() {
+    const filter = filterEl.value;
     const children = records.filter((item) => item.category === "child");
     const adults = records.filter((item) => item.category === "adult");
-    countEl.textContent = `共 ${records.length} 位選手（兒童組 ${children.length}／成人組 ${adults.length}）`;
+
+    const visibleChildren = filter === "adult" ? [] : children;
+    const visibleAdults = filter === "child" ? [] : adults;
+    const visibleCount = visibleChildren.length + visibleAdults.length;
+
+    if (filter === "all") {
+      countEl.textContent = `共 ${records.length} 位選手（兒童組 ${children.length}／成人組 ${adults.length}）`;
+    } else if (filter === "child") {
+      countEl.textContent = `兒童組 ${children.length} 位選手`;
+    } else {
+      countEl.textContent = `成人組 ${adults.length} 位選手`;
+    }
 
     if (!records.length) {
       root.innerHTML = `<p class="empty-note">目前尚無報名資料</p>`;
       return;
     }
 
-    root.innerHTML = `${renderChildSection(children)}${renderAdultSection(adults)}`;
+    if (!visibleCount) {
+      root.innerHTML = `<p class="empty-note">此組別尚無選手</p>`;
+      return;
+    }
+
+    let html = "";
+    if (filter === "all" || filter === "child") {
+      html += renderChildSection(visibleChildren);
+    }
+    if (filter === "all" || filter === "adult") {
+      html += renderAdultSection(visibleAdults);
+    }
+    root.innerHTML = html;
   }
 
   async function load() {
     errorEl.hidden = true;
     root.innerHTML = `<p class="empty-note">載入中…</p>`;
     try {
-      const records = await BjjStore.listRegistrations();
-      render(records);
+      records = await BjjStore.listRegistrations();
+      render();
     } catch (err) {
+      records = [];
       root.innerHTML = "";
       countEl.textContent = "共 0 位選手";
       errorEl.textContent = err.message || "載入失敗，請稍後再試";
@@ -138,5 +166,6 @@
     }
   }
 
+  filterEl.addEventListener("change", render);
   load();
 })();

@@ -28,7 +28,18 @@
       <p>依兒童組／成人組分開顯示；兒童組再依相同年齡與體重分群。</p>
     </div>
 
-    <p class="list-count" id="list-count">載入中…</p>
+    <div class="list-toolbar">
+      <label class="filter-label">
+        組別篩選
+        <select id="category-filter">
+          <option value="all">全部</option>
+          <option value="child">兒童組</option>
+          <option value="adult">成人組</option>
+        </select>
+      </label>
+      <p class="list-count" id="list-count">載入中…</p>
+    </div>
+
     <p class="field-error" id="list-error" hidden></p>
     <div id="athletes-root" class="athletes-root" aria-live="polite"></div>
   </main>
