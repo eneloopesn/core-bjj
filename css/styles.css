@@ -496,59 +496,95 @@ select:focus {
   max-width: 960px;
 }
 
-.list-toolbar {
+.list-count {
+  margin: 0 0 1.4rem;
+  color: var(--sand-dim);
+  font-size: 0.95rem;
+}
+
+.athletes-root {
+  display: grid;
+  gap: 2rem;
+}
+
+.division-block {
+  border-top: 1px solid var(--line);
+  padding-top: 1.2rem;
+}
+
+.division-header {
   display: flex;
   flex-wrap: wrap;
-  align-items: end;
+  align-items: baseline;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 0.6rem 1rem;
   margin-bottom: 1rem;
 }
 
-.filter-label {
+.division-header h2 {
   margin: 0;
-  min-width: 12rem;
-}
-
-.list-count {
-  margin: 0;
-  color: var(--sand-dim);
-  font-size: 0.95rem;
-}
-
-.table-wrap {
-  overflow-x: auto;
-  border-top: 1px solid var(--line);
-}
-
-.athletes-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.95rem;
-}
-
-.athletes-table th,
-.athletes-table td {
-  padding: 0.85rem 0.6rem;
-  text-align: left;
-  border-bottom: 1px solid var(--line);
-  white-space: nowrap;
-}
-
-.athletes-table th {
-  color: var(--gold);
   font-family: var(--font-display);
-  letter-spacing: 0.06em;
+  font-size: clamp(1.4rem, 3vw, 1.8rem);
+  letter-spacing: 0.08em;
   font-weight: 600;
 }
 
-.athletes-table td {
+.division-header span {
   color: var(--sand-dim);
+  font-size: 0.92rem;
 }
 
-.athletes-table tbody tr:hover td {
-  color: var(--sand);
-  background: rgba(212, 168, 75, 0.05);
+.bracket-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.bracket-group {
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.bracket-group:last-child {
+  border-bottom: none;
+}
+
+.bracket-group h3 {
+  margin: 0 0 0.7rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.35rem;
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.bracket-sep {
+  color: var(--sand-dim);
+  font-weight: 500;
+}
+
+.bracket-count {
+  margin-left: 0.35rem;
+  color: var(--sand-dim);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.athlete-names {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--sand-dim);
+  line-height: 1.8;
+}
+
+.athlete-names li {
+  padding: 0.1rem 0;
+}
+
+.empty-note {
+  margin: 0;
+  color: var(--sand-dim);
 }
 
 .transfer-box[hidden],

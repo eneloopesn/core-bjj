@@ -25,41 +25,12 @@
   <main class="page page-wide">
     <div class="page-intro">
       <h1>已報名選手</h1>
-      <p>目前已送出報名的選手名單（不顯示聯絡資料）。</p>
+      <p>依兒童組／成人組分開顯示；兒童組再依相同年齡與體重分群。</p>
     </div>
 
-    <div class="list-toolbar">
-      <label class="filter-label">
-        組別篩選
-        <select id="category-filter">
-          <option value="all">全部</option>
-          <option value="adult">成人組</option>
-          <option value="child">兒童組</option>
-        </select>
-      </label>
-      <p class="list-count" id="list-count">載入中…</p>
-    </div>
-
+    <p class="list-count" id="list-count">載入中…</p>
     <p class="field-error" id="list-error" hidden></p>
-
-    <div class="table-wrap">
-      <table class="athletes-table" id="athletes-table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>姓名</th>
-            <th>組別</th>
-            <th>年齡區間</th>
-            <th>體重級別</th>
-          </tr>
-        </thead>
-        <tbody id="athletes-body">
-          <tr>
-            <td colspan="5">載入中…</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <div id="athletes-root" class="athletes-root" aria-live="polite"></div>
   </main>
 
   <footer class="site-footer">
