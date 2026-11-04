@@ -29,15 +29,18 @@
     </div>
 
     <div class="list-toolbar">
-      <label class="filter-label">
+      <label class="filter-label" for="category-filter">
         組別篩選
-        <select id="category-filter">
+        <select id="category-filter" name="category-filter">
           <option value="all">全部</option>
           <option value="child">兒童組</option>
           <option value="adult">成人組</option>
         </select>
       </label>
-      <p class="list-count" id="list-count">載入中…</p>
+      <div class="list-meta">
+        <p class="filter-status" id="filter-status">目前顯示：全部</p>
+        <p class="list-count" id="list-count">載入中…</p>
+      </div>
     </div>
 
     <p class="field-error" id="list-error" hidden></p>
@@ -48,8 +51,8 @@
     <p>Jabari 巴西柔術館內賽 · 報名資料僅供活動聯繫使用</p>
   </footer>
 
-  <script src="js/config.js"></script>
-  <script src="js/storage.js"></script>
-  <script src="js/athletes.js"></script>
+  <script src="js/config.js?v=20261104b"></script>
+  <script src="js/storage.js?v=20261104b"></script>
+  <script src="js/athletes.js?v=20261104b"></script>
 </body>
 </html>

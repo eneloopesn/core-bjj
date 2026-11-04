@@ -515,6 +515,19 @@ select:focus {
   color: var(--sand-dim);
 }
 
+.list-meta {
+  display: grid;
+  gap: 0.25rem;
+  text-align: right;
+}
+
+.filter-status {
+  margin: 0;
+  color: var(--gold);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
 .list-count {
   margin: 0;
   color: var(--sand-dim);
@@ -524,6 +537,15 @@ select:focus {
 .athletes-root {
   display: grid;
   gap: 2rem;
+}
+
+.athletes-root.is-updating {
+  animation: list-fade 0.25s ease;
+}
+
+@keyframes list-fade {
+  from { opacity: 0.45; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .division-block {

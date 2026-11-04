@@ -3,6 +3,7 @@
   const countEl = document.getElementById("list-count");
   const errorEl = document.getElementById("list-error");
   const filterEl = document.getElementById("category-filter");
+  const filterStatusEl = document.getElementById("filter-status");
 
   let records = [];
 
@@ -12,6 +13,13 @@
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
+  }
+
+  function normalizeCategory(value) {
+    const raw = String(value || "").trim().toLowerCase();
+    if (raw === "child" || raw === "兒童" || raw === "兒童組") return "child";
+    if (raw === "adult" || raw === "成人" || raw === "成人組") return "adult";
+    return raw;
   }
 
   function sortIndex(list, value) {
@@ -66,7 +74,7 @@
   function renderChildSection(children) {
     const groups = groupChildren(children);
     if (!groups.length) {
-      return `<section class="division-block">
+      return `<section class="division-block" data-division="child">
         <header class="division-header">
           <h2>兒童組</h2>
           <span>0 人</span>
@@ -91,7 +99,7 @@
       })
       .join("");
 
-    return `<section class="division-block">
+    return `<section class="division-block" data-division="child">
       <header class="division-header">
         <h2>兒童組</h2>
         <span>${children.length} 人 · ${groups.length} 個級別</span>
@@ -105,7 +113,7 @@
       String(a.name || "").localeCompare(String(b.name || ""), "zh-Hant")
     );
 
-    return `<section class="division-block">
+    return `<section class="division-block" data-division="adult">
       <header class="division-header">
         <h2>成人組</h2>
         <span>${sorted.length} 人</span>
@@ -114,14 +122,27 @@
     </section>`;
   }
 
-  function render() {
-    const filter = filterEl.value;
-    const children = records.filter((item) => item.category === "child");
-    const adults = records.filter((item) => item.category === "adult");
+  function filterLabel(filter) {
+    if (filter === "child") return "兒童組";
+    if (filter === "adult") return "成人組";
+    return "全部";
+  }
 
-    const visibleChildren = filter === "adult" ? [] : children;
-    const visibleAdults = filter === "child" ? [] : adults;
-    const visibleCount = visibleChildren.length + visibleAdults.length;
+  function render() {
+    if (!filterEl || !root || !countEl) return;
+
+    const filter = filterEl.value || "all";
+    const children = records.filter((item) => normalizeCategory(item.category) === "child");
+    const adults = records.filter((item) => normalizeCategory(item.category) === "adult");
+
+    const showChildren = filter === "all" || filter === "child";
+    const showAdults = filter === "all" || filter === "adult";
+    const visibleChildren = showChildren ? children : [];
+    const visibleAdults = showAdults ? adults : [];
+
+    if (filterStatusEl) {
+      filterStatusEl.textContent = `目前顯示：${filterLabel(filter)}`;
+    }
 
     if (filter === "all") {
       countEl.textContent = `共 ${records.length} 位選手（兒童組 ${children.length}／成人組 ${adults.length}）`;
@@ -133,26 +154,45 @@
 
     if (!records.length) {
       root.innerHTML = `<p class="empty-note">目前尚無報名資料</p>`;
-      return;
-    }
-
-    if (!visibleCount) {
-      root.innerHTML = `<p class="empty-note">此組別尚無選手</p>`;
+      root.dataset.filter = filter;
       return;
     }
 
     let html = "";
-    if (filter === "all" || filter === "child") {
-      html += renderChildSection(visibleChildren);
+
+    if (filter === "child") {
+      html = children.length
+        ? renderChildSection(children)
+        : `<p class="empty-note">兒童組目前尚無選手</p>`;
+    } else if (filter === "adult") {
+      html = adults.length
+        ? renderAdultSection(adults)
+        : `<p class="empty-note">成人組目前尚無選手</p>`;
+    } else {
+      if (children.length) html += renderChildSection(children);
+      if (adults.length) html += renderAdultSection(adults);
+      if (!children.length && !adults.length) {
+        html = `<p class="empty-note">目前尚無報名資料</p>`;
+      } else if (!children.length) {
+        html = `${renderChildSection([])}${html}`;
+      } else if (!adults.length) {
+        html = `${html}${renderAdultSection([])}`;
+      }
     }
-    if (filter === "all" || filter === "adult") {
-      html += renderAdultSection(visibleAdults);
-    }
+
     root.innerHTML = html;
+    root.dataset.filter = filter;
+    root.classList.remove("is-updating");
+    void root.offsetWidth;
+    root.classList.add("is-updating");
+  }
+
+  function onFilterChange() {
+    render();
   }
 
   async function load() {
-    errorEl.hidden = true;
+    if (errorEl) errorEl.hidden = true;
     root.innerHTML = `<p class="empty-note">載入中…</p>`;
     try {
       records = await BjjStore.listRegistrations();
@@ -161,11 +201,17 @@
       records = [];
       root.innerHTML = "";
       countEl.textContent = "共 0 位選手";
-      errorEl.textContent = err.message || "載入失敗，請稍後再試";
-      errorEl.hidden = false;
+      if (errorEl) {
+        errorEl.textContent = err.message || "載入失敗，請稍後再試";
+        errorEl.hidden = false;
+      }
     }
   }
 
-  filterEl.addEventListener("change", render);
+  if (filterEl) {
+    filterEl.addEventListener("change", onFilterChange);
+    filterEl.addEventListener("input", onFilterChange);
+  }
+
   load();
 })();
