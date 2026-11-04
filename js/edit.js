@@ -14,6 +14,7 @@
 
   BjjStore.bindFeeSummary(editForm, summary);
   BjjStore.bindPaymentToggle(editForm);
+  BjjStore.bindCategoryFields(editForm);
 
   const params = new URLSearchParams(location.search);
   if (params.get("name")) {
@@ -80,6 +81,7 @@
     editForm.hidden = true;
     currentName = null;
     editForm.reset();
+    editForm.dispatchEvent(new Event("change", { bubbles: true }));
     if (formError) formError.hidden = true;
   });
 })();

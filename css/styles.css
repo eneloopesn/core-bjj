@@ -395,7 +395,8 @@ label {
 
 input[type="text"],
 input[type="tel"],
-input[type="email"] {
+input[type="email"],
+select {
   width: 100%;
   padding: 0.75rem 0.85rem;
   border: 1px solid var(--line);
@@ -406,10 +407,25 @@ input[type="email"] {
   transition: border-color 0.2s ease, background 0.2s ease;
 }
 
-input:focus {
+select {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--gold) 50%),
+    linear-gradient(135deg, var(--gold) 50%, transparent 50%);
+  background-position: calc(100% - 18px) 55%, calc(100% - 12px) 55%;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  padding-right: 2rem;
+}
+
+select option {
+  color: #111;
+}
+
+input:focus,
+select:focus {
   outline: none;
   border-color: var(--gold);
-  background: rgba(212, 168, 75, 0.06);
+  background-color: rgba(212, 168, 75, 0.06);
 }
 
 .hint {
@@ -458,11 +474,81 @@ input:focus {
   height: 1.05rem;
 }
 
-.transfer-box {
+.transfer-box,
+.child-box {
   margin-top: 1rem;
   padding: 1rem;
   border-left: 3px solid var(--gold);
   background: rgba(22, 53, 43, 0.45);
+}
+
+.child-box label:first-child {
+  margin-top: 0;
+}
+
+.summary-note {
+  margin-left: 0.35rem;
+  color: var(--sand-dim);
+  font-size: 0.9rem;
+}
+
+.page-wide {
+  max-width: 960px;
+}
+
+.list-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.filter-label {
+  margin: 0;
+  min-width: 12rem;
+}
+
+.list-count {
+  margin: 0;
+  color: var(--sand-dim);
+  font-size: 0.95rem;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  border-top: 1px solid var(--line);
+}
+
+.athletes-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.athletes-table th,
+.athletes-table td {
+  padding: 0.85rem 0.6rem;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+
+.athletes-table th {
+  color: var(--gold);
+  font-family: var(--font-display);
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+.athletes-table td {
+  color: var(--sand-dim);
+}
+
+.athletes-table tbody tr:hover td {
+  color: var(--sand);
+  background: rgba(212, 168, 75, 0.05);
 }
 
 .transfer-box[hidden],

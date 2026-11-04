@@ -8,6 +8,7 @@
 
   BjjStore.bindFeeSummary(form, summary);
   BjjStore.bindPaymentToggle(form);
+  BjjStore.bindCategoryFields(form);
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -36,8 +37,8 @@
   });
 
   dialog.addEventListener("close", () => {
-    if (dialog.returnValue === "edit") {
-      location.href = "edit.html";
+    if (dialog.returnValue === "list") {
+      location.href = "athletes.html";
       return;
     }
     if (dialog.returnValue === "home") {

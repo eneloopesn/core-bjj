@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>報名｜Jabari 巴西柔術研習營</title>
+  <title>報名｜Jabari 巴西柔術館內賽</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet" />
@@ -17,6 +17,7 @@
     <nav class="nav">
       <a href="index.html">介紹</a>
       <a href="register.html" class="is-active">報名</a>
+      <a href="athletes.html">選手列表</a>
       <a href="edit.html">修改資料</a>
     </nav>
   </header>
@@ -24,7 +25,7 @@
   <main class="page">
     <div class="page-intro">
       <h1>報名表</h1>
-      <p>請填寫以下資料完成報名。之後可用姓名修改資料。</p>
+      <p>請填寫選手資料完成報名。之後可用姓名修改資料。</p>
     </div>
 
     <form id="reg-form" class="form" novalidate>
@@ -46,32 +47,33 @@
       </fieldset>
 
       <fieldset>
-        <legend>參加場次</legend>
-        <p class="hint">可單日或兩日皆選</p>
-        <div class="check-row">
-          <label class="check">
-            <input type="checkbox" name="dates" value="2026-11-13" />
-            <span>11/13（五）14:00–17:00</span>
-          </label>
-          <label class="check">
-            <input type="checkbox" name="dates" value="2026-11-14" />
-            <span>11/14（六）14:00–17:00</span>
-          </label>
-        </div>
-        <p class="field-error" id="dates-error" hidden>請至少選擇一天場次</p>
-      </fieldset>
-
-      <fieldset>
-        <legend>身分</legend>
+        <legend>參賽組別</legend>
         <div class="radio-row">
           <label class="radio">
             <input type="radio" name="category" value="adult" required checked />
-            <span>成人（12 歲以上）</span>
+            <span>成人組</span>
           </label>
           <label class="radio">
             <input type="radio" name="category" value="child" />
-            <span>兒童（12 歲以下）</span>
+            <span>兒童組</span>
           </label>
+        </div>
+
+        <div id="child-fields" class="child-box" hidden>
+          <label>
+            年齡區間
+            <select name="ageGroup">
+              <option value="">請選擇年齡區間</option>
+            </select>
+          </label>
+          <p class="field-error" id="age-error" hidden>請選擇兒童年齡區間</p>
+          <label>
+            體重級別
+            <select name="weightClass">
+              <option value="">請選擇體重級別</option>
+            </select>
+          </label>
+          <p class="field-error" id="weight-error" hidden>請選擇兒童體重級別</p>
         </div>
       </fieldset>
 
@@ -83,10 +85,9 @@
             <span>櫃檯付款</span>
           </label>
           <label class="radio">
-            <input type="radio" name="payment" value="transfer"  />
+            <input type="radio" name="payment" value="transfer" />
             <span>匯款</span>
           </label>
-          
         </div>
         <div id="transfer-fields" class="transfer-box">
           <p class="bank-info">匯款帳號：808（玉山銀行）1234-567-890123<br />戶名：Jabari 巴西柔術有限公司</p>
@@ -99,7 +100,7 @@
       </fieldset>
 
       <div class="summary" id="fee-summary" aria-live="polite">
-        預估費用：<strong>NT$ 0</strong>
+        報名費：<strong>NT$ 0</strong>
       </div>
 
       <p class="field-error" id="form-error" hidden></p>
@@ -109,12 +110,12 @@
     <dialog id="success-dialog" class="dialog">
       <form method="dialog">
         <h2>報名成功</h2>
-        <p>已完成報名，報名姓名為：</p>
+        <p>已完成報名，選手姓名為：</p>
         <p class="code" id="success-name"></p>
         <p class="dialog-note" id="success-mail-note" hidden>確認信已寄至你填寫的電子信箱。</p>
         <p class="dialog-note">之後可用姓名修改報名資料。</p>
         <div class="dialog-actions">
-          <button class="btn btn-ghost" value="edit">去修改資料</button>
+          <button class="btn btn-ghost" value="list">看選手列表</button>
           <button class="btn btn-primary" value="home">回到介紹</button>
         </div>
       </form>
@@ -122,7 +123,7 @@
   </main>
 
   <footer class="site-footer">
-    <p>Jabari 巴西柔術研習營 · 報名資料僅供活動聯繫使用</p>
+    <p>Jabari 巴西柔術館內賽 · 報名資料僅供活動聯繫使用</p>
   </footer>
 
   <script src="js/config.js"></script>

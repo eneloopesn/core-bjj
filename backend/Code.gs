@@ -1,19 +1,41 @@
 /**
- * CORE 巴西柔術報名 API
- * 建議：從 Google 試算表 → 擴充功能 → Apps Script 貼上此檔後部署為「網頁應用程式」
- * 執行身分：我本人 / 存取權：任何人
- * 重要：修改程式後請「部署 → 管理部署作業 → 編輯 → 新版本 → 部署」
+ * Jabari 巴西柔術館內賽報名 API
+ * 部署：試算表 → Apps Script → 貼上此檔 → 網頁應用程式（任何人）
+ * 更新後請：部署 → 管理部署作業 → 編輯 → 新版本 → 部署
  */
 
 var SHEET_NAME = "registrations";
 var FEE_TABLE = {
-  adult: { one: 800, two: 1400 },
-  child: { one: 500, two: 900 },
+  adult: 800,
+  child: 500,
 };
-var DATE_LABELS = {
-  "2026-11-13": "11/13（五）",
-  "2026-11-14": "11/14（六）",
-};
+var AGE_GROUPS = ["4-5", "6-7", "8-9", "10-11", "12-13", "14-15", "16-17"];
+var WEIGHT_CLASSES = [
+  "20-25",
+  "25-30",
+  "30-35",
+  "35-40",
+  "40-45",
+  "45-50",
+  "50-55",
+  "55-60",
+  "60-65",
+  "65-70",
+];
+var HEADERS = [
+  "id",
+  "name",
+  "phone",
+  "email",
+  "category",
+  "ageGroup",
+  "weightClass",
+  "payment",
+  "last5",
+  "fee",
+  "createdAt",
+  "updatedAt",
+];
 
 function doGet(e) {
   return handleRequest(e && e.parameter ? e.parameter : {});
@@ -37,7 +59,10 @@ function handleRequest(payload) {
     if (action === "create") return createRegistration_(payload);
     if (action === "find") return findRegistration_(payload);
     if (action === "update") return updateRegistration_(payload);
-    if (action === "ping") return json_({ ok: true, message: "CORE BJJ API ready", version: "name-lookup-v2" });
+    if (action === "list") return listRegistrations_();
+    if (action === "ping") {
+      return json_({ ok: true, message: "Jabari BJJ API ready", version: "inhouse-v1" });
+    }
     return json_({ ok: false, error: "未知的 action" });
   } catch (err) {
     return json_({ ok: false, error: String(err && err.message ? err.message : err) });
@@ -62,7 +87,7 @@ function getSpreadsheet_() {
   }
 
   if (!ss) {
-    ss = SpreadsheetApp.create("CORE-BJJ-Registrations");
+    ss = SpreadsheetApp.create("Jabari-BJJ-Registrations");
   }
 
   props.setProperty("SPREADSHEET_ID", ss.getId());
@@ -74,29 +99,48 @@ function getSheet_() {
   var sheet = ss.getSheetByName(SHEET_NAME);
   if (!sheet) {
     sheet = ss.insertSheet(SHEET_NAME);
-    sheet.appendRow([
-      "id",
-      "name",
-      "phone",
-      "email",
-      "dates",
-      "category",
-      "payment",
-      "last5",
-      "fee",
-      "createdAt",
-      "updatedAt",
-    ]);
-    sheet.getRange("A:K").setNumberFormat("@");
+    sheet.appendRow(HEADERS);
+    sheet.getRange(1, 1, 1, HEADERS.length).setNumberFormat("@");
+    return sheet;
   }
+
+  ensureHeaders_(sheet);
   return sheet;
 }
 
-function calcFee_(category, dates) {
-  var count = dates && dates.length ? dates.length : 0;
-  if (!count || !FEE_TABLE[category]) return 0;
-  var tier = FEE_TABLE[category];
-  return count >= 2 ? tier.two : tier.one;
+function ensureHeaders_(sheet) {
+  var width = Math.max(sheet.getLastColumn(), HEADERS.length);
+  var headerRange = sheet.getRange(1, 1, 1, width);
+  var current = headerRange.getValues()[0];
+  var first = String(current[0] || "").trim().toLowerCase();
+
+  // 舊版欄位（含 dates）→ 重建表頭並保留可對應資料較複雜，這裡確保至少有新表頭寬度
+  if (first !== "id") {
+    sheet.clear();
+    sheet.appendRow(HEADERS);
+    sheet.getRange(1, 1, 1, HEADERS.length).setNumberFormat("@");
+    return;
+  }
+
+  if (sheet.getLastColumn() < HEADERS.length) {
+    sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
+  } else {
+    var needsUpdate = false;
+    for (var i = 0; i < HEADERS.length; i++) {
+      if (String(current[i] || "") !== HEADERS[i]) {
+        needsUpdate = true;
+        break;
+      }
+    }
+    if (needsUpdate && String(current[4] || "") === "dates") {
+      // 舊表頭仍是 dates 結構：改寫表頭為新結構（既有列需人工或重新報名）
+      sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
+    }
+  }
+}
+
+function calcFee_(category) {
+  return FEE_TABLE[category] || 0;
 }
 
 function normalizeName_(value) {
@@ -114,55 +158,51 @@ function normalizePhone_(value) {
   return phone;
 }
 
-function parseDates_(value) {
-  if (Object.prototype.toString.call(value) === "[object Array]") {
-    return value
-      .map(function (item) {
-        return normalizeDateToken_(item);
-      })
-      .filter(Boolean);
-  }
-  if (Object.prototype.toString.call(value) === "[object Date]") {
-    var one = normalizeDateToken_(value);
-    return one ? [one] : [];
-  }
-  if (!value) return [];
-  return String(value)
-    .split(",")
-    .map(function (s) {
-      return normalizeDateToken_(s);
-    })
-    .filter(Boolean);
-}
-
-function normalizeDateToken_(value) {
-  if (value == null || value === "") return "";
-  if (Object.prototype.toString.call(value) === "[object Date]" && !isNaN(value.getTime())) {
-    return Utilities.formatDate(value, Session.getScriptTimeZone() || "Asia/Taipei", "yyyy-MM-dd");
-  }
-  var text = String(value).trim();
-  if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text;
-
-  var parsed = new Date(text);
-  if (!isNaN(parsed.getTime())) {
-    return Utilities.formatDate(parsed, Session.getScriptTimeZone() || "Asia/Taipei", "yyyy-MM-dd");
-  }
-  return text;
-}
-
 function rowToRecord_(row) {
+  // 新結構：id name phone email category ageGroup weightClass payment last5 fee createdAt updatedAt
+  // 舊結構：id name phone email dates category payment last5 fee createdAt updatedAt
+  var category = "";
+  var ageGroup = "";
+  var weightClass = "";
+  var payment = "";
+  var last5 = "";
+  var fee = 0;
+  var createdAt = "";
+  var updatedAt = "";
+
+  if (row[4] === "adult" || row[4] === "child") {
+    category = row[4];
+    ageGroup = row[5] || "";
+    weightClass = row[6] || "";
+    payment = row[7];
+    last5 = row[8];
+    fee = Number(row[9]) || 0;
+    createdAt = row[10];
+    updatedAt = row[11];
+  } else {
+    category = row[5];
+    payment = row[6];
+    last5 = row[7];
+    fee = Number(row[8]) || 0;
+    createdAt = row[9];
+    updatedAt = row[10];
+    ageGroup = row[11] || "";
+    weightClass = row[12] || "";
+  }
+
   return {
     id: normalizeName_(row[0]) || normalizeName_(row[1]),
     name: normalizeName_(row[1]) || normalizeName_(row[0]),
     phone: normalizePhone_(row[2]),
     email: row[3] || "",
-    dates: parseDates_(row[4]),
-    category: row[5],
-    payment: row[6],
-    last5: row[7] ? String(row[7]).replace(/\.0$/, "") : "",
-    fee: Number(row[8]) || 0,
-    createdAt: row[9],
-    updatedAt: row[10],
+    category: category,
+    ageGroup: String(ageGroup || ""),
+    weightClass: String(weightClass || ""),
+    payment: payment,
+    last5: last5 ? String(last5).replace(/\.0$/, "") : "",
+    fee: fee,
+    createdAt: createdAt,
+    updatedAt: updatedAt,
   };
 }
 
@@ -176,9 +216,7 @@ function findRowIndex_(sheet, name) {
   if (!target) return null;
 
   for (var i = 1; i < values.length; i++) {
-    var idCell = values[i][0];
-    var nameCell = values[i][1];
-    if (namesMatch_(nameCell, target) || namesMatch_(idCell, target)) {
+    if (namesMatch_(values[i][1], target) || namesMatch_(values[i][0], target)) {
       return { index: i + 1, record: rowToRecord_(values[i]) };
     }
   }
@@ -186,15 +224,16 @@ function findRowIndex_(sheet, name) {
 }
 
 function writeRecordRow_(sheet, rowIndex, record) {
-  sheet.getRange(rowIndex, 1, 1, 11).setNumberFormat("@");
-  sheet.getRange(rowIndex, 1, 1, 11).setValues([
+  sheet.getRange(rowIndex, 1, 1, HEADERS.length).setNumberFormat("@");
+  sheet.getRange(rowIndex, 1, 1, HEADERS.length).setValues([
     [
       String(record.id),
       String(record.name),
       String(record.phone),
       String(record.email || ""),
-      record.dates.join(","),
       String(record.category),
+      String(record.ageGroup || ""),
+      String(record.weightClass || ""),
       String(record.payment),
       String(record.last5 || ""),
       String(record.fee),
@@ -220,11 +259,12 @@ function createRegistration_(payload) {
     name: data.name,
     phone: data.phone,
     email: data.email,
-    dates: data.dates,
     category: data.category,
+    ageGroup: data.ageGroup,
+    weightClass: data.weightClass,
     payment: data.payment,
     last5: data.last5,
-    fee: calcFee_(data.category, data.dates),
+    fee: calcFee_(data.category),
     createdAt: now,
     updatedAt: now,
   };
@@ -262,11 +302,12 @@ function updateRegistration_(payload) {
     name: data.name,
     phone: data.phone,
     email: data.email,
-    dates: data.dates,
     category: data.category,
+    ageGroup: data.ageGroup,
+    weightClass: data.weightClass,
     payment: data.payment,
     last5: data.last5,
-    fee: calcFee_(data.category, data.dates),
+    fee: calcFee_(data.category),
     createdAt: found.record.createdAt,
     updatedAt: now,
   };
@@ -276,15 +317,33 @@ function updateRegistration_(payload) {
   return json_({ ok: true, record: record });
 }
 
+function listRegistrations_() {
+  var sheet = getSheet_();
+  var values = sheet.getDataRange().getValues();
+  var records = [];
+  for (var i = 1; i < values.length; i++) {
+    if (!values[i][1] && !values[i][0]) continue;
+    var record = rowToRecord_(values[i]);
+    records.push({
+      name: record.name,
+      category: record.category,
+      ageGroup: record.ageGroup,
+      weightClass: record.weightClass,
+    });
+  }
+  return json_({ ok: true, records: records });
+}
+
 function normalizeData_(payload) {
-  var dates = parseDates_(payload.dates);
+  var category = String(payload.category || "").trim();
   var payment = String(payload.payment || "").trim();
   return {
     name: normalizeName_(payload.name),
     phone: normalizePhone_(payload.phone),
     email: String(payload.email || "").trim(),
-    dates: dates,
-    category: String(payload.category || "").trim(),
+    category: category,
+    ageGroup: category === "child" ? String(payload.ageGroup || "").trim() : "",
+    weightClass: category === "child" ? String(payload.weightClass || "").trim() : "",
     payment: payment,
     last5: payment === "transfer" ? String(payload.last5 || "").trim() : "",
   };
@@ -296,9 +355,16 @@ function validateData_(data) {
   if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
     return { ok: false, error: "電子信箱格式不正確" };
   }
-  if (!data.dates.length) return { ok: false, error: "請至少選擇一天場次" };
   if (data.category !== "adult" && data.category !== "child") {
-    return { ok: false, error: "身分不正確" };
+    return { ok: false, error: "組別不正確" };
+  }
+  if (data.category === "child") {
+    if (AGE_GROUPS.indexOf(data.ageGroup) < 0) {
+      return { ok: false, error: "請選擇兒童年齡區間" };
+    }
+    if (WEIGHT_CLASSES.indexOf(data.weightClass) < 0) {
+      return { ok: false, error: "請選擇兒童體重級別" };
+    }
   }
   if (data.payment !== "transfer" && data.payment !== "counter") {
     return { ok: false, error: "繳費方式不正確" };
@@ -310,48 +376,62 @@ function validateData_(data) {
 }
 
 function categoryLabel_(category) {
-  return category === "child" ? "兒童（12 歲以下）" : "成人（12 歲以上）";
+  return category === "child" ? "兒童組" : "成人組";
+}
+
+function ageLabel_(value) {
+  var map = {
+    "4-5": "4～5 歲",
+    "6-7": "6～7 歲",
+    "8-9": "8～9 歲",
+    "10-11": "10～11 歲",
+    "12-13": "12～13 歲",
+    "14-15": "14～15 歲",
+    "16-17": "16～17 歲",
+  };
+  return map[value] || value || "—";
+}
+
+function weightLabel_(value) {
+  return value ? value.replace("-", "～") + " kg" : "—";
 }
 
 function paymentLabel_(payment) {
   return payment === "transfer" ? "匯款" : "櫃檯付款";
 }
 
-function datesLabel_(dates) {
-  return dates
-    .map(function (d) {
-      return DATE_LABELS[d] || d;
-    })
-    .join("、");
-}
-
 function sendNoticeEmail_(record, type) {
   if (!record.email) return;
   var isCreate = type === "create";
   var subject = isCreate
-    ? "【CORE BJJ】報名成功通知 " + record.name
-    : "【CORE BJJ】報名資料已更新 " + record.name;
-  var body = [
-    isCreate ? "您好，已收到您的報名。" : "您好，您的報名資料已更新。",
+    ? "【Jabari 館內賽】報名成功通知 " + record.name
+    : "【Jabari 館內賽】報名資料已更新 " + record.name;
+  var lines = [
+    isCreate ? "您好，已收到您的館內賽報名。" : "您好，您的館內賽報名資料已更新。",
     "",
     "姓名：" + record.name,
     "手機：" + record.phone,
-    "場次：" + datesLabel_(record.dates),
-    "身分：" + categoryLabel_(record.category),
+    "組別：" + categoryLabel_(record.category),
+  ];
+  if (record.category === "child") {
+    lines.push("年齡區間：" + ageLabel_(record.ageGroup));
+    lines.push("體重級別：" + weightLabel_(record.weightClass));
+  }
+  lines = lines.concat([
     "繳費方式：" +
       paymentLabel_(record.payment) +
       (record.last5 ? "（末五碼 " + record.last5 + "）" : ""),
-    "費用：NT$ " + record.fee,
+    "報名費：NT$ " + record.fee + "／單場",
     "",
     "如需修改資料，請至網站「修改資料」頁面，使用姓名查詢。",
     "",
-    "CORE 巴西柔術體驗營",
-  ].join("\n");
+    "Jabari 巴西柔術館內賽",
+  ]);
 
   MailApp.sendEmail({
     to: record.email,
     subject: subject,
-    body: body,
+    body: lines.join("\n"),
   });
 }
 

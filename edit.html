@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>修改資料｜Jabari 巴西柔術研習營</title>
+  <title>修改資料｜Jabari 巴西柔術館內賽</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet" />
@@ -17,6 +17,7 @@
     <nav class="nav">
       <a href="index.html">介紹</a>
       <a href="register.html">報名</a>
+      <a href="athletes.html">選手列表</a>
       <a href="edit.html" class="is-active">修改資料</a>
     </nav>
   </header>
@@ -58,32 +59,33 @@
       </fieldset>
 
       <fieldset>
-        <legend>參加場次</legend>
-        <p class="hint">可單日或兩日皆選</p>
-        <div class="check-row">
-          <label class="check">
-            <input type="checkbox" name="dates" value="2026-11-13" />
-            <span>11/13（五）14:00–17:00</span>
-          </label>
-          <label class="check">
-            <input type="checkbox" name="dates" value="2026-11-14" />
-            <span>11/14（六）14:00–17:00</span>
-          </label>
-        </div>
-        <p class="field-error" id="dates-error" hidden>請至少選擇一天場次</p>
-      </fieldset>
-
-      <fieldset>
-        <legend>身分</legend>
+        <legend>參賽組別</legend>
         <div class="radio-row">
           <label class="radio">
             <input type="radio" name="category" value="adult" required />
-            <span>成人（12 歲以上）</span>
+            <span>成人組</span>
           </label>
           <label class="radio">
             <input type="radio" name="category" value="child" />
-            <span>兒童（12 歲以下）</span>
+            <span>兒童組</span>
           </label>
+        </div>
+
+        <div id="child-fields" class="child-box" hidden>
+          <label>
+            年齡區間
+            <select name="ageGroup">
+              <option value="">請選擇年齡區間</option>
+            </select>
+          </label>
+          <p class="field-error" id="age-error" hidden>請選擇兒童年齡區間</p>
+          <label>
+            體重級別
+            <select name="weightClass">
+              <option value="">請選擇體重級別</option>
+            </select>
+          </label>
+          <p class="field-error" id="weight-error" hidden>請選擇兒童體重級別</p>
         </div>
       </fieldset>
 
@@ -91,16 +93,16 @@
         <legend>繳費方式</legend>
         <div class="radio-row">
           <label class="radio">
-            <input type="radio" name="payment" value="transfer" required />
-            <span>匯款</span>
+            <input type="radio" name="payment" value="counter" required />
+            <span>櫃檯付款</span>
           </label>
           <label class="radio">
-            <input type="radio" name="payment" value="counter" />
-            <span>櫃檯付款</span>
+            <input type="radio" name="payment" value="transfer" />
+            <span>匯款</span>
           </label>
         </div>
         <div id="transfer-fields" class="transfer-box">
-          <p class="bank-info">匯款帳號：808（玉山銀行）1234-567-890123<br />戶名：CORE 巴西柔術有限公司</p>
+          <p class="bank-info">匯款帳號：808（玉山銀行）1234-567-890123<br />戶名：Jabari 巴西柔術有限公司</p>
           <label>
             匯款帳號末五碼
             <input type="text" name="last5" pattern="\d{5}" maxlength="5" inputmode="numeric" placeholder="例如 12345" />
@@ -110,7 +112,7 @@
       </fieldset>
 
       <div class="summary" id="fee-summary" aria-live="polite">
-        預估費用：<strong>NT$ 0</strong>
+        報名費：<strong>NT$ 0</strong>
       </div>
 
       <p class="field-error" id="form-error" hidden></p>
@@ -133,7 +135,7 @@
   </main>
 
   <footer class="site-footer">
-    <p>Jabari 巴西柔術研習營 · 報名資料僅供活動聯繫使用</p>
+    <p>Jabari 巴西柔術館內賽 · 報名資料僅供活動聯繫使用</p>
   </footer>
 
   <script src="js/config.js"></script>
