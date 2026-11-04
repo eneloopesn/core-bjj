@@ -49,10 +49,7 @@
       <fieldset>
         <legend>參賽組別</legend>
         <div class="radio-row">
-          <label class="radio">
-            <input type="radio" name="category" value="adult" required checked />
-            <span>成人組</span>
-          </label>
+          
           <label class="radio">
             <input type="radio" name="category" value="child" />
             <span>兒童組</span>
@@ -74,6 +71,10 @@
             </select>
           </label>
           <p class="field-error" id="weight-error" hidden>請選擇兒童體重級別</p>
+          <label class="radio">
+            <input type="radio" name="category" value="adult" required checked />
+            <span>成人組</span>
+          </label>
         </div>
       </fieldset>
 
@@ -96,6 +97,7 @@
             <input type="text" name="last5" pattern="\d{5}" maxlength="5" inputmode="numeric" placeholder="例如 12345" />
           </label>
           <p class="field-error" id="last5-error" hidden>選擇匯款時請填寫末五碼</p>
+          
         </div>
       </fieldset>
 
