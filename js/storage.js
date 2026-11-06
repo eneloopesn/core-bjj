@@ -201,17 +201,24 @@ function readFormData(form) {
 function validateRegistration(form, data) {
   const last5Error = form.querySelector("#last5-error");
   const emailError = form.querySelector("#email-error");
+  const phoneError = form.querySelector("#phone-error");
   const ageError = form.querySelector("#age-error");
   const weightError = form.querySelector("#weight-error");
   let ok = true;
 
   if (last5Error) last5Error.hidden = true;
   if (emailError) emailError.hidden = true;
+  if (phoneError) phoneError.hidden = true;
   if (ageError) ageError.hidden = true;
   if (weightError) weightError.hidden = true;
 
   if (!form.checkValidity()) {
     form.reportValidity();
+    ok = false;
+  }
+
+  if (data.phone && !/^09\d{8}$/.test(data.phone)) {
+    if (phoneError) phoneError.hidden = false;
     ok = false;
   }
 

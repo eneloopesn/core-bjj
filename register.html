@@ -36,9 +36,10 @@
           <input type="text" name="name" required maxlength="40" autocomplete="name" placeholder="請輸入真實姓名" />
         </label>
         <label>
-          手機
-          <input type="tel" name="phone" required pattern="09\d{8}" maxlength="10" inputmode="numeric" placeholder="09xxxxxxxx" />
+          手機（選填）
+          <input type="tel" name="phone" pattern="09\d{8}" maxlength="10" inputmode="numeric" placeholder="09xxxxxxxx" />
         </label>
+        <p class="field-error" id="phone-error" hidden>手機格式不正確</p>
         <label>
           電子信箱（選填）
           <input type="email" name="email" autocomplete="email" placeholder="有填寫才會寄送確認信" />

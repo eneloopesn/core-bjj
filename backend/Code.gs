@@ -351,7 +351,9 @@ function normalizeData_(payload) {
 
 function validateData_(data) {
   if (!data.name) return { ok: false, error: "請填寫姓名" };
-  if (!/^09\d{8}$/.test(data.phone)) return { ok: false, error: "手機格式不正確" };
+  if (data.phone && !/^09\d{8}$/.test(data.phone)) {
+    return { ok: false, error: "手機格式不正確" };
+  }
   if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
     return { ok: false, error: "電子信箱格式不正確" };
   }
@@ -410,9 +412,9 @@ function sendNoticeEmail_(record, type) {
     isCreate ? "您好，已收到您的館內賽報名。" : "您好，您的館內賽報名資料已更新。",
     "",
     "姓名：" + record.name,
-    "手機：" + record.phone,
-    "組別：" + categoryLabel_(record.category),
   ];
+  if (record.phone) lines.push("手機：" + record.phone);
+  lines.push("組別：" + categoryLabel_(record.category));
   if (record.category === "child") {
     lines.push("年齡區間：" + ageLabel_(record.ageGroup));
     lines.push("體重級別：" + weightLabel_(record.weightClass));
