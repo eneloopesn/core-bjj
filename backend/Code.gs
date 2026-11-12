@@ -272,7 +272,7 @@ function writeRecordRow_(sheet, rowIndex, record) {
 
 function createRegistration_(payload) {
   var data = normalizeData_(payload);
-  var validation = validateData_(data);
+  var validation = validateData_(data, { requirePhone: true });
   if (!validation.ok) return json_(validation);
 
   var sheet = getSheet_();
@@ -313,7 +313,7 @@ function findRegistration_(payload) {
 
 function updateRegistration_(payload) {
   var data = normalizeData_(payload);
-  var validation = validateData_(data);
+  var validation = validateData_(data, { requirePhone: true });
   if (!validation.ok) return json_(validation);
 
   var sheet = getSheet_();
@@ -393,10 +393,14 @@ function normalizeData_(payload) {
   };
 }
 
-function validateData_(data) {
+function validateData_(data, options) {
+  options = options || {};
   if (!data.name) return { ok: false, error: "請填寫姓名" };
+  if (options.requirePhone && !data.phone) {
+    return { ok: false, error: "請填寫手機號碼" };
+  }
   if (data.phone && !/^09\d{8}$/.test(data.phone)) {
-    return { ok: false, error: "手機格式不正確" };
+    return { ok: false, error: options.requirePhone ? "手機號碼格式不正確" : "手機格式不正確" };
   }
   if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
     return { ok: false, error: "電子信箱格式不正確" };

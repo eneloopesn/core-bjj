@@ -446,8 +446,20 @@ function validateRegistration(form, data) {
     ok = false;
   }
 
-  if (data.phone && !/^09\d{8}$/.test(data.phone)) {
-    if (phoneError) phoneError.hidden = false;
+  const phoneInput = form.querySelector('input[name="phone"]');
+  if (!data.phone) {
+    if (phoneInput?.required) {
+      if (phoneError) {
+        phoneError.textContent = "請填寫手機號碼";
+        phoneError.hidden = false;
+      }
+      ok = false;
+    }
+  } else if (!/^09\d{8}$/.test(data.phone)) {
+    if (phoneError) {
+      phoneError.textContent = phoneInput?.required ? "手機號碼格式不正確" : "手機格式不正確";
+      phoneError.hidden = false;
+    }
     ok = false;
   }
 

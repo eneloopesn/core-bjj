@@ -84,10 +84,10 @@
         </div>
         <p class="field-error" id="gender-error" hidden>請選擇性別</p>
         <label>
-          手機（選填）
-          <input type="tel" name="phone" pattern="09\d{8}" maxlength="10" inputmode="numeric" />
+          手機號碼
+          <input type="tel" name="phone" required pattern="09\d{8}" maxlength="10" inputmode="numeric" placeholder="09xxxxxxxx" autocomplete="tel" />
         </label>
-        <p class="field-error" id="phone-error" hidden>手機格式不正確</p>
+        <p class="field-error" id="phone-error" hidden>請填寫手機號碼</p>
         <label>
           電子信箱（選填）
           <input type="email" name="email" autocomplete="email" placeholder="有填寫才會寄送通知信" />
