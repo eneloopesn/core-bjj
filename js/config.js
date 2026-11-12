@@ -1,5 +1,5 @@
 // 部署 Google Apps Script 後，把網頁應用程式網址貼在這裡
 // 例：https://script.google.com/macros/s/XXXX/exec
 window.BJJ_CONFIG = {
-  API_URL: "https://script.google.com/macros/s/AKfycbyks3u0slPJuq7CV0_-Z7r9hAgZwBZRN4gq6Q7uLzKLOCoa6Pz1St9Ulr9AYQReImlcYg/exec",
+  API_URL: "https://script.google.com/macros/s/AKfycbzJ89u_joP_U5nvEgAFih_2aNobMNDZI2MXR3yz31OI4uOTwkhh__ECRg-OSzc8-EV0rQ/exec",
 };
