@@ -224,11 +224,138 @@ async function listRegistrations() {
   return result.records || [];
 }
 
-function bindFeeSummary(form, summaryEl) {
+function selectedCategory(form) {
+  return (
+    form.querySelector('input[type="hidden"][name="category"]')?.value ||
+    form.querySelector('input[name="category"]:checked')?.value ||
+    ""
+  );
+}
+
+function isValidDate(year, month, day) {
+  const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+  return (
+    date.getUTCFullYear() === Number(year) &&
+    date.getUTCMonth() === Number(month) - 1 &&
+    date.getUTCDate() === Number(day)
+  );
+}
+
+function toIsoDate(year, month, day) {
+  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+function categoryFromBirth(year, month, day) {
+  if (!year || !month || !day || !isValidDate(year, month, day)) return "";
+  const iso = toIsoDate(year, month, day);
+  if (iso > "2018-12-13") return "child";
+  if (iso > "2015-12-13") return "junior";
+  if (iso > "2013-12-13") return "youth";
+  if (iso > "2010-12-13") return "young";
+  return "";
+}
+
+function daysInMonth(year, month) {
+  if (!year || !month) return 31;
+  return new Date(Date.UTC(Number(year), Number(month), 0)).getUTCDate();
+}
+
+function fillNumberOptions(select, start, end, placeholder, pad) {
+  if (!select || select.dataset.ready === "1") return;
+  const current = select.value;
+  select.innerHTML = "";
+  const first = document.createElement("option");
+  first.value = "";
+  first.textContent = placeholder;
+  select.appendChild(first);
+  const step = start <= end ? 1 : -1;
+  for (let value = start; step > 0 ? value <= end : value >= end; value += step) {
+    const option = document.createElement("option");
+    option.value = String(value);
+    option.textContent = pad ? String(value).padStart(2, "0") : String(value);
+    select.appendChild(option);
+  }
+  if (current) select.value = current;
+  select.dataset.ready = "1";
+}
+
+function applyCategory(form, category) {
+  const hidden = form.querySelector('input[type="hidden"][name="category"]');
+  if (hidden) hidden.value = category || "";
+  form.querySelectorAll("#category-options input").forEach((input) => {
+    input.checked = input.value === category;
+  });
+  const result = form.querySelector("#category-result");
+  if (result) {
+    result.textContent = category ? `年齡分組：${categoryLabel(category)}` : "請先填寫出生年月日";
+  }
+}
+
+function bindBirthCategory(form) {
+  const yearSelect = form.querySelector('select[name="birthYear"]');
+  const monthSelect = form.querySelector('select[name="birthMonth"]');
+  const daySelect = form.querySelector('select[name="birthDay"]');
+  if (!yearSelect || !monthSelect || !daySelect) return;
+
+  fillNumberOptions(yearSelect, 2026, 2008, "年");
+  fillNumberOptions(monthSelect, 1, 12, "月", true);
+
+  const refreshDays = () => {
+    const year = yearSelect.value;
+    const month = monthSelect.value;
+    const current = daySelect.value;
+    const max = daysInMonth(year, month);
+    daySelect.innerHTML = "";
+    const first = document.createElement("option");
+    first.value = "";
+    first.textContent = "日";
+    daySelect.appendChild(first);
+    for (let day = 1; day <= max; day += 1) {
+      const option = document.createElement("option");
+      option.value = String(day);
+      option.textContent = String(day).padStart(2, "0");
+      daySelect.appendChild(option);
+    }
+    if (current && Number(current) <= max) daySelect.value = current;
+  };
+
+  const refreshCategory = () => {
+    const year = yearSelect.value;
+    const month = monthSelect.value;
+    const day = daySelect.value;
+    const result = form.querySelector("#category-result");
+    if (!year || !month || !day) {
+      applyCategory(form, "");
+      return;
+    }
+    if (!isValidDate(year, month, day)) {
+      applyCategory(form, "");
+      if (result) result.textContent = "出生年月日不正確";
+      return;
+    }
+    const category = categoryFromBirth(year, month, day);
+    applyCategory(form, category);
+    if (!category && result) result.textContent = "此出生年月日不在本次競賽年齡分組內";
+  };
+
   const refresh = () => {
-    const category = form.querySelector('input[name="category"]:checked')?.value || "child";
+    refreshDays();
+    refreshCategory();
+  };
+
+  form.addEventListener("change", (event) => {
+    if (["birthYear", "birthMonth", "birthDay"].includes(event.target.name)) refresh();
+  });
+  refresh();
+}
+
+function bindFeeSummary(form, summaryEl, options) {
+  const perMatch = !options || options.perMatch !== false;
+  const refresh = () => {
+    const category = selectedCategory(form) || "child";
     const fee = calcFee(category);
-    summaryEl.innerHTML = `報名費：<strong>${formatFee(fee)}</strong><span class="summary-note">／單場</span>`;
+    const note = perMatch ? `<span class="summary-note">／單場</span>` : "";
+    summaryEl.innerHTML = `報名費：<strong>${formatFee(fee)}</strong>${note}`;
   };
 
   form.addEventListener("change", refresh);
@@ -259,13 +386,14 @@ function bindCategoryFields(form) {
   const weightSelect = form.querySelector('select[name="weightClass"]');
 
   const refresh = () => {
-    const category = form.querySelector('input[name="category"]:checked')?.value;
+    const category = selectedCategory(form);
     const gender = form.querySelector('input[name="gender"]:checked')?.value;
-    fillSelectOptions(
-      weightSelect,
-      weightOptionsFor(category, gender),
-      gender ? "請選擇體重級別" : "請先選擇男子組或女子組"
-    );
+    const placeholder = !category
+      ? "請先填寫出生年月日"
+      : gender
+        ? "請選擇體重級別"
+        : "請先選擇性別";
+    fillSelectOptions(weightSelect, weightOptionsFor(category, gender), placeholder);
     if (weightFields) weightFields.hidden = !category;
   };
 
@@ -275,11 +403,19 @@ function bindCategoryFields(form) {
 
 function readFormData(form) {
   const fd = new FormData(form);
-  const category = String(fd.get("category") || "");
+  const birthYear = String(fd.get("birthYear") || "").trim();
+  const birthMonth = String(fd.get("birthMonth") || "").trim();
+  const birthDay = String(fd.get("birthDay") || "").trim();
+  const birthDate =
+    birthYear && birthMonth && birthDay && isValidDate(birthYear, birthMonth, birthDay)
+      ? toIsoDate(birthYear, birthMonth, birthDay)
+      : "";
+  const category = categoryFromBirth(birthYear, birthMonth, birthDay) || String(fd.get("category") || "");
   return {
     name: String(fd.get("name") || "").trim(),
     phone: String(fd.get("phone") || "").trim(),
     email: String(fd.get("email") || "").trim(),
+    birthDate,
     category,
     gender: String(fd.get("gender") || "").trim(),
     ageGroup: "",
@@ -295,6 +431,7 @@ function validateRegistration(form, data) {
   const phoneError = form.querySelector("#phone-error");
   const weightError = form.querySelector("#weight-error");
   const genderError = form.querySelector("#gender-error");
+  const birthError = form.querySelector("#birth-error");
   let ok = true;
 
   if (last5Error) last5Error.hidden = true;
@@ -302,6 +439,7 @@ function validateRegistration(form, data) {
   if (phoneError) phoneError.hidden = true;
   if (weightError) weightError.hidden = true;
   if (genderError) genderError.hidden = true;
+  if (birthError) birthError.hidden = true;
 
   if (!form.checkValidity()) {
     form.reportValidity();
@@ -316,6 +454,31 @@ function validateRegistration(form, data) {
   if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
     if (emailError) emailError.hidden = false;
     ok = false;
+  }
+
+  const birthYear = form.querySelector('select[name="birthYear"]')?.value || "";
+  const birthMonth = form.querySelector('select[name="birthMonth"]')?.value || "";
+  const birthDay = form.querySelector('select[name="birthDay"]')?.value || "";
+  if (form.querySelector('select[name="birthYear"]')) {
+    if (!birthYear || !birthMonth || !birthDay) {
+      if (birthError) {
+        birthError.textContent = "請填寫出生年月日";
+        birthError.hidden = false;
+      }
+      ok = false;
+    } else if (!isValidDate(birthYear, birthMonth, birthDay)) {
+      if (birthError) {
+        birthError.textContent = "出生年月日不正確";
+        birthError.hidden = false;
+      }
+      ok = false;
+    } else if (!categoryFromBirth(birthYear, birthMonth, birthDay)) {
+      if (birthError) {
+        birthError.textContent = "此出生年月日不在本次競賽年齡分組內";
+        birthError.hidden = false;
+      }
+      ok = false;
+    }
   }
 
   if (!getCategory(data.category)) {
@@ -358,11 +521,23 @@ function fillForm(form, record) {
   setValue('input[name="email"]', record.email);
   setValue('input[name="last5"]', record.last5);
 
-  const cat = form.querySelector(`input[name="category"][value="${record.category}"]`);
-  if (cat) cat.checked = true;
+  if (record.birthDate && /^\d{4}-\d{2}-\d{2}$/.test(record.birthDate)) {
+    const [year, month, day] = record.birthDate.split("-");
+    setValue('select[name="birthYear"]', String(Number(year)));
+    setValue('select[name="birthMonth"]', String(Number(month)));
+    form.querySelector('select[name="birthMonth"]')?.dispatchEvent(new Event("change", { bubbles: true }));
+    setValue('select[name="birthDay"]', String(Number(day)));
+    form.querySelector('select[name="birthDay"]')?.dispatchEvent(new Event("change", { bubbles: true }));
+  }
 
   const gender = form.querySelector(`input[name="gender"][value="${record.gender}"]`);
   if (gender) gender.checked = true;
+
+  if (!record.birthDate) {
+    const cat = form.querySelector(`input[name="category"][value="${record.category}"]`);
+    if (cat) cat.checked = true;
+    applyCategory(form, record.category);
+  }
 
   const pay = form.querySelector(`input[name="payment"][value="${record.payment}"]`);
   if (pay) pay.checked = true;
@@ -408,7 +583,10 @@ window.BjjStore = {
   findRegistration,
   updateRegistration,
   listRegistrations,
+  bindBirthCategory,
   bindFeeSummary,
+  categoryFromBirth,
+  applyCategory,
   bindPaymentToggle,
   bindCategoryFields,
   readFormData,

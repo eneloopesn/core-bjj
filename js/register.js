@@ -6,7 +6,8 @@
   const formError = document.getElementById("form-error");
   const submitBtn = form.querySelector('button[type="submit"]');
 
-  BjjStore.bindFeeSummary(form, summary);
+  BjjStore.bindBirthCategory(form);
+  BjjStore.bindFeeSummary(form, summary, { perMatch: false });
   BjjStore.bindPaymentToggle(form);
   BjjStore.bindCategoryFields(form);
 

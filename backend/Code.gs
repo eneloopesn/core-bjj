@@ -56,6 +56,7 @@ var HEADERS = [
   "createdAt",
   "updatedAt",
   "gender",
+  "birthDate",
 ];
 
 function doGet(e) {
@@ -221,6 +222,7 @@ function rowToRecord_(row) {
     ageGroup: String(ageGroup || ""),
     weightClass: String(weightClass || ""),
     gender: KNOWN_CATEGORIES[row[4]] ? String(row[12] || "") : "",
+    birthDate: KNOWN_CATEGORIES[row[4]] ? String(row[13] || "") : "",
     payment: payment,
     last5: last5 ? String(last5).replace(/\.0$/, "") : "",
     fee: fee,
@@ -263,6 +265,7 @@ function writeRecordRow_(sheet, rowIndex, record) {
       String(record.createdAt),
       String(record.updatedAt),
       String(record.gender || ""),
+      String(record.birthDate || ""),
     ],
   ]);
 }
@@ -287,6 +290,7 @@ function createRegistration_(payload) {
     ageGroup: data.ageGroup,
     weightClass: data.weightClass,
     gender: data.gender,
+    birthDate: data.birthDate,
     payment: data.payment,
     last5: data.last5,
     fee: calcFee_(data.category),
@@ -331,6 +335,7 @@ function updateRegistration_(payload) {
     ageGroup: data.ageGroup,
     weightClass: data.weightClass,
     gender: data.gender,
+    birthDate: data.birthDate,
     payment: data.payment,
     last5: data.last5,
     fee: calcFee_(data.category),
@@ -361,8 +366,18 @@ function listRegistrations_() {
   return json_({ ok: true, records: records });
 }
 
+function categoryFromBirth_(iso) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return "";
+  if (iso > "2018-12-13") return "child";
+  if (iso > "2015-12-13") return "junior";
+  if (iso > "2013-12-13") return "youth";
+  if (iso > "2010-12-13") return "young";
+  return "";
+}
+
 function normalizeData_(payload) {
-  var category = String(payload.category || "").trim();
+  var birthDate = String(payload.birthDate || "").trim();
+  var category = categoryFromBirth_(birthDate) || String(payload.category || "").trim();
   var payment = String(payload.payment || "").trim();
   return {
     name: normalizeName_(payload.name),
@@ -370,6 +385,7 @@ function normalizeData_(payload) {
     email: String(payload.email || "").trim(),
     category: category,
     gender: String(payload.gender || "").trim(),
+    birthDate: birthDate,
     ageGroup: "",
     weightClass: String(payload.weightClass || "").trim(),
     payment: payment,
@@ -385,12 +401,15 @@ function validateData_(data) {
   if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
     return { ok: false, error: "電子信箱格式不正確" };
   }
+  if (!categoryFromBirth_(data.birthDate)) {
+    return { ok: false, error: "請填寫有效的出生年月日" };
+  }
   var spec = CATEGORIES[data.category];
   if (!spec) {
     return { ok: false, error: "組別不正確" };
   }
   if (data.gender !== "male" && data.gender !== "female") {
-    return { ok: false, error: "請選擇男子組或女子組" };
+    return { ok: false, error: "請選擇性別" };
   }
   var allowedWeights = weightOptionsFor_(data.category, data.gender);
   if (allowedWeights.indexOf(data.weightClass) < 0) {
@@ -497,8 +516,10 @@ function sendNoticeEmail_(record, type) {
     "姓名：" + record.name,
   ];
   if (record.phone) lines.push("手機：" + record.phone);
+  if (record.birthDate) lines.push("出生年月日：" + record.birthDate);
+  if (record.gender === "male") lines.push("性別：男");
+  if (record.gender === "female") lines.push("性別：女");
   lines.push("組別：" + categoryLabel_(record.category));
-  if (record.gender) lines.push("性別組別：" + genderLabel_(record.gender));
   if (record.weightClass) {
     lines.push("體重級別：" + weightLabel_(record.weightClass, record.category, record.gender));
   }

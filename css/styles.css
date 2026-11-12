@@ -532,6 +532,33 @@ select:focus {
   margin-top: 0.9rem;
 }
 
+.radio-row.is-locked {
+  pointer-events: none;
+}
+
+.field-label {
+  margin: 1rem 0 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--sand-dim);
+}
+
+.birth-row {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.birth-row label {
+  margin-top: 0.45rem;
+}
+
+.category-result {
+  margin: 0.2rem 0 0;
+  color: var(--gold);
+  font-weight: 700;
+}
+
 .check,
 .radio {
   display: flex;

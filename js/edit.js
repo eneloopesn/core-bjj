@@ -12,7 +12,8 @@
 
   let currentName = null;
 
-  BjjStore.bindFeeSummary(editForm, summary);
+  BjjStore.bindBirthCategory(editForm);
+  BjjStore.bindFeeSummary(editForm, summary, { perMatch: false });
   BjjStore.bindPaymentToggle(editForm);
   BjjStore.bindCategoryFields(editForm);
 

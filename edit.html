@@ -48,6 +48,41 @@
           姓名
           <input type="text" name="name" required maxlength="40" autocomplete="name" />
         </label>
+        <p class="field-label">出生年月日</p>
+        <div class="birth-row">
+          <label>
+            年
+            <select name="birthYear" required>
+              <option value="">年</option>
+            </select>
+          </label>
+          <label>
+            月
+            <select name="birthMonth" required>
+              <option value="">月</option>
+            </select>
+          </label>
+          <label>
+            日
+            <select name="birthDay" required>
+              <option value="">日</option>
+            </select>
+          </label>
+        </div>
+        <p class="hint">年齡分組以 2026/12/13 為基準自動判斷。</p>
+        <p class="field-error" id="birth-error" hidden>請填寫出生年月日</p>
+        <p class="field-label">性別</p>
+        <div class="radio-row">
+          <label class="radio">
+            <input type="radio" name="gender" value="male" required />
+            <span>男</span>
+          </label>
+          <label class="radio">
+            <input type="radio" name="gender" value="female" />
+            <span>女</span>
+          </label>
+        </div>
+        <p class="field-error" id="gender-error" hidden>請選擇性別</p>
         <label>
           手機（選填）
           <input type="tel" name="phone" pattern="09\d{8}" maxlength="10" inputmode="numeric" />
@@ -62,36 +97,26 @@
 
       <fieldset>
         <legend>參賽組別</legend>
-        <div class="radio-row">
+        <p class="category-result" id="category-result">請先填寫出生年月日</p>
+        <input type="hidden" name="category" value="" />
+        <div class="radio-row is-locked" id="category-options">
           <label class="radio">
-            <input type="radio" name="category" value="child" required />
+            <input type="radio" value="child" tabindex="-1" />
             <span>兒童組</span>
           </label>
           <label class="radio">
-            <input type="radio" name="category" value="junior" />
+            <input type="radio" value="junior" tabindex="-1" />
             <span>少年組</span>
           </label>
           <label class="radio">
-            <input type="radio" name="category" value="youth" />
+            <input type="radio" value="youth" tabindex="-1" />
             <span>青少年組</span>
           </label>
           <label class="radio">
-            <input type="radio" name="category" value="young" />
+            <input type="radio" value="young" tabindex="-1" />
             <span>青年組</span>
           </label>
         </div>
-
-        <div class="radio-row">
-          <label class="radio">
-            <input type="radio" name="gender" value="male" required />
-            <span>男子組</span>
-          </label>
-          <label class="radio">
-            <input type="radio" name="gender" value="female" />
-            <span>女子組</span>
-          </label>
-        </div>
-        <p class="field-error" id="gender-error" hidden>請選擇男子組或女子組</p>
 
         <div id="weight-fields" class="child-box">
           <label>
@@ -153,8 +178,8 @@
     <p>115年基隆市長樂國小家長會長盃柔術錦標賽 · 報名資料僅供活動聯繫使用</p>
   </footer>
 
-  <script src="js/config.js"></script>
-  <script src="js/storage.js"></script>
-  <script src="js/edit.js"></script>
+  <script src="js/config.js?v=20261112l"></script>
+  <script src="js/storage.js?v=20261112l"></script>
+  <script src="js/edit.js?v=20261112l"></script>
 </body>
 </html>
