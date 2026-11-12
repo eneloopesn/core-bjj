@@ -43,10 +43,13 @@
     return BjjStore.weightClassLabel(record.weightClass, record.category, record.gender) || "—";
   }
 
+  function registrationTime(record) {
+    const time = Date.parse(record.createdAt || "");
+    return Number.isNaN(time) ? Number.POSITIVE_INFINITY : time;
+  }
+
   function render(records) {
-    const sorted = [...records].sort((a, b) =>
-      String(a.name || "").localeCompare(String(b.name || ""), "zh-Hant")
-    );
+    const sorted = [...records].sort((a, b) => registrationTime(a) - registrationTime(b));
     if (countEl) countEl.textContent = `共 ${sorted.length} 筆報名`;
     if (!sorted.length) {
       root.innerHTML = `<p class="empty-note">目前尚無報名資料</p>`;

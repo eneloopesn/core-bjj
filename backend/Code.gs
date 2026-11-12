@@ -384,9 +384,17 @@ function listRegistrationStatus_() {
       birthDate: record.birthDate,
       payment: record.payment,
       last5: record.last5,
+      createdAt: createdAtText_(record.createdAt),
     });
   }
   return json_({ ok: true, records: records });
+}
+
+function createdAtText_(value) {
+  if (Object.prototype.toString.call(value) === "[object Date]" && !isNaN(value.getTime())) {
+    return value.toISOString();
+  }
+  return String(value || "").trim();
 }
 
 function categoryFromBirth_(iso) {
