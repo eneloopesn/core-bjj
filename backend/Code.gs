@@ -535,10 +535,10 @@ function sendNoticeEmail_(record, type) {
   if (!record.email) return;
   var isCreate = type === "create";
   var subject = isCreate
-    ? "【Jabari 館內賽】報名成功通知 " + record.name
-    : "【Jabari 館內賽】報名資料已更新 " + record.name;
+    ? "115年基隆市長樂國小家長會長盃柔術錦標賽 報名成功通知 " + record.name
+    : "115年基隆市長樂國小家長會長盃柔術錦標賽 報名資料已更新 " + record.name;
   var lines = [
-    isCreate ? "您好，已收到您的館內賽報名。" : "您好，您的館內賽報名資料已更新。",
+    isCreate ? "您好，已收到您的115年基隆市長樂國小家長會長盃柔術錦標賽報名。" : "您好，您的115年基隆市長樂國小家長會長盃柔術錦標賽報名資料已更新。",
     "",
     "姓名：" + record.name,
   ];
@@ -558,7 +558,7 @@ function sendNoticeEmail_(record, type) {
     "",
     "如需修改資料，請至網站「修改資料」頁面，使用姓名查詢。",
     "",
-    "Jabari 巴西柔術館內賽",
+    "115年基隆市長樂國小家長會長盃柔術錦標賽",
   ]);
 
   MailApp.sendEmail({
