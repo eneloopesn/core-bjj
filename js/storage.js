@@ -130,9 +130,38 @@ function weightBand(category) {
   return "";
 }
 
+function weightTokenLabel(value) {
+  const text = String(value || "");
+  const open = text.match(/^o(\d+)$/);
+  if (open) return `${open[1]}kg~`;
+  const under = text.match(/^u(\d+)$/);
+  if (under) return `~${under[1]}kg`;
+  return WEIGHT_CLASSES.find((item) => item.value === value)?.label || text || "—";
+}
+
+function rangeStart(kg) {
+  return ((Math.round(Number(kg) * 100) + 1) / 100).toFixed(2);
+}
+
+function weightRangeLabel(codes, index) {
+  const value = String(codes[index] || "");
+  const open = value.match(/^o(\d+)$/);
+  const under = value.match(/^u(\d+)$/);
+  const previous = index > 0 ? String(codes[index - 1]).match(/(\d+)$/) : null;
+  const previousKg = previous ? Number(previous[1]) : null;
+  if (index === 0 && under) return `~${under[1]}kg`;
+  if (under && previousKg !== null) return `${rangeStart(previousKg)}~${under[1]}kg`;
+  if (open && previousKg !== null) return `${rangeStart(previousKg)}kg以上`;
+  return weightTokenLabel(value);
+}
+
 function weightOptionsFor(category, gender) {
   const codes = WEIGHT_TABLES[gender]?.[weightBand(category)] || [];
-  return codes.map((value) => ({ value, label: weightClassLabel(value) }));
+  return codes.map((value, index) => {
+    const level = `量級-${index + 1}`;
+    const kg = weightRangeLabel(codes, index);
+    return { value, level, kg, label: `${level} ${kg}` };
+  });
 }
 
 function genderLabel(gender) {
@@ -148,13 +177,10 @@ function weightSortIndex(value) {
   return Number(matched[2]) * 2 + (matched[1] === "o" ? 1 : 0);
 }
 
-function weightClassLabel(value) {
-  const text = String(value || "");
-  const open = text.match(/^o(\d+)$/);
-  if (open) return `${open[1]}kg~`;
-  const under = text.match(/^u(\d+)$/);
-  if (under) return `~${under[1]}kg`;
-  return WEIGHT_CLASSES.find((item) => item.value === value)?.label || text || "—";
+function weightClassLabel(value, category, gender) {
+  const match = weightOptionsFor(category, gender).find((item) => item.value === value);
+  if (match) return match.label;
+  return weightTokenLabel(value);
 }
 
 function fillSelectOptions(select, options, placeholder) {
@@ -235,10 +261,9 @@ function bindCategoryFields(form) {
   const refresh = () => {
     const category = form.querySelector('input[name="category"]:checked')?.value;
     const gender = form.querySelector('input[name="gender"]:checked')?.value;
-    const options = weightOptionsFor(category, gender);
     fillSelectOptions(
       weightSelect,
-      options,
+      weightOptionsFor(category, gender),
       gender ? "請選擇體重級別" : "請先選擇男子組或女子組"
     );
     if (weightFields) weightFields.hidden = !category;

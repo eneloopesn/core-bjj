@@ -94,7 +94,11 @@
         const genderText = BjjStore.genderLabel(group.gender);
         if (genderText) parts.push(genderText);
         if (group.ageGroup) parts.push(BjjStore.ageGroupLabel(group.ageGroup));
-        parts.push(BjjStore.weightClassLabel(group.weightClass) || "未填體重");
+        parts.push(
+          group.weightClass
+            ? BjjStore.weightClassLabel(group.weightClass, categoryValue, group.gender)
+            : "未填體重"
+        );
         const title = parts
           .map((part) => `<span>${escapeHtml(part)}</span>`)
           .join('<span class="bracket-sep">／</span>');

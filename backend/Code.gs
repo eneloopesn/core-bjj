@@ -447,7 +447,7 @@ function genderLabel_(gender) {
   return "";
 }
 
-function weightLabel_(value) {
+function weightTokenLabel_(value) {
   var text = String(value || "");
   var open = text.match(/^o(\d+)$/);
   if (open) return open[1] + "kg~";
@@ -455,6 +455,30 @@ function weightLabel_(value) {
   if (under) return "~" + under[1] + "kg";
   if (!text) return "—";
   return text.replace("-", "～") + " kg";
+}
+
+function rangeStart_(kg) {
+  return ((Math.round(Number(kg) * 100) + 1) / 100).toFixed(2);
+}
+
+function weightRangeLabel_(codes, index) {
+  var value = String(codes[index] || "");
+  var open = value.match(/^o(\d+)$/);
+  var under = value.match(/^u(\d+)$/);
+  var previous = index > 0 ? String(codes[index - 1]).match(/(\d+)$/) : null;
+  var previousKg = previous ? Number(previous[1]) : null;
+  if (index === 0 && under) return "~" + under[1] + "kg";
+  if (under && previousKg !== null) return rangeStart_(previousKg) + "~" + under[1] + "kg";
+  if (open && previousKg !== null) return rangeStart_(previousKg) + "kg以上";
+  return weightTokenLabel_(value);
+}
+
+function weightLabel_(value, category, gender) {
+  var list = weightOptionsFor_(category, gender);
+  for (var i = 0; i < list.length; i++) {
+    if (list[i] === value) return "量級-" + (i + 1) + " " + weightRangeLabel_(list, i);
+  }
+  return weightTokenLabel_(value);
 }
 
 function paymentLabel_(payment) {
@@ -475,7 +499,9 @@ function sendNoticeEmail_(record, type) {
   if (record.phone) lines.push("手機：" + record.phone);
   lines.push("組別：" + categoryLabel_(record.category));
   if (record.gender) lines.push("性別組別：" + genderLabel_(record.gender));
-  if (record.weightClass) lines.push("體重級別：" + weightLabel_(record.weightClass));
+  if (record.weightClass) {
+    lines.push("體重級別：" + weightLabel_(record.weightClass, record.category, record.gender));
+  }
   lines = lines.concat([
     "繳費方式：" +
       paymentLabel_(record.payment) +
