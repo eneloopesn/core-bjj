@@ -506,7 +506,7 @@ function sendNoticeEmail_(record, type) {
     "繳費方式：" +
       paymentLabel_(record.payment) +
       (record.last5 ? "（末五碼 " + record.last5 + "）" : ""),
-    "報名費：NT$ " + record.fee + "／單場",
+    "報名費：NT$ " + record.fee + "",
     "",
     "如需修改資料，請至網站「修改資料」頁面，使用姓名查詢。",
     "",
