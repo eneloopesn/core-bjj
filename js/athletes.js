@@ -18,6 +18,9 @@
   function normalizeCategory(value) {
     const raw = String(value || "").trim().toLowerCase();
     if (raw === "child" || raw === "兒童" || raw === "兒童組") return "child";
+    if (raw === "junior" || raw === "少年" || raw === "少年組") return "junior";
+    if (raw === "youth" || raw === "青少年" || raw === "青少年組") return "youth";
+    if (raw === "young" || raw === "青年" || raw === "青年組") return "young";
     if (raw === "adult" || raw === "成人" || raw === "成人組") return "adult";
     return raw;
   }
@@ -28,12 +31,12 @@
   }
 
   function compareChildren(a, b) {
+    const genderDiff = String(a.gender || "").localeCompare(String(b.gender || ""));
+    if (genderDiff !== 0) return genderDiff;
     const ageDiff =
       sortIndex(BjjStore.AGE_GROUPS, a.ageGroup) - sortIndex(BjjStore.AGE_GROUPS, b.ageGroup);
     if (ageDiff !== 0) return ageDiff;
-    const weightDiff =
-      sortIndex(BjjStore.WEIGHT_CLASSES, a.weightClass) -
-      sortIndex(BjjStore.WEIGHT_CLASSES, b.weightClass);
+    const weightDiff = BjjStore.weightSortIndex(a.weightClass) - BjjStore.weightSortIndex(b.weightClass);
     if (weightDiff !== 0) return weightDiff;
     return String(a.name || "").localeCompare(String(b.name || ""), "zh-Hant");
   }
@@ -41,9 +44,10 @@
   function groupChildren(children) {
     const map = new Map();
     children.forEach((athlete) => {
-      const key = `${athlete.ageGroup || ""}__${athlete.weightClass || ""}`;
+      const key = `${athlete.gender || ""}__${athlete.ageGroup || ""}__${athlete.weightClass || ""}`;
       if (!map.has(key)) {
         map.set(key, {
+          gender: athlete.gender || "",
           ageGroup: athlete.ageGroup || "",
           weightClass: athlete.weightClass || "",
           athletes: [],
@@ -71,27 +75,32 @@
       .join("")}</ol>`;
   }
 
-  function renderChildSection(children) {
-    const groups = groupChildren(children);
+  function renderBracketSection(categoryValue, athletes) {
+    const label = BjjStore.categoryLabel(categoryValue);
+    const groups = groupChildren(athletes);
     if (!groups.length) {
-      return `<section class="division-block" data-division="child">
+      return `<section class="division-block" data-division="${escapeHtml(categoryValue)}">
         <header class="division-header">
-          <h2>兒童組</h2>
+          <h2>${escapeHtml(label)}</h2>
           <span>0 人</span>
         </header>
-        <p class="empty-note">尚無兒童組選手</p>
+        <p class="empty-note">尚無${escapeHtml(label)}選手</p>
       </section>`;
     }
 
     const groupsHtml = groups
       .map((group) => {
-        const ageLabel = BjjStore.ageGroupLabel(group.ageGroup) || "未填年齡";
-        const weightLabel = BjjStore.weightClassLabel(group.weightClass) || "未填體重";
+        const parts = [];
+        const genderText = BjjStore.genderLabel(group.gender);
+        if (genderText) parts.push(genderText);
+        if (group.ageGroup) parts.push(BjjStore.ageGroupLabel(group.ageGroup));
+        parts.push(BjjStore.weightClassLabel(group.weightClass) || "未填體重");
+        const title = parts
+          .map((part) => `<span>${escapeHtml(part)}</span>`)
+          .join('<span class="bracket-sep">／</span>');
         return `<article class="bracket-group">
           <h3>
-            <span>${escapeHtml(ageLabel)}</span>
-            <span class="bracket-sep">／</span>
-            <span>${escapeHtml(weightLabel)}</span>
+            ${title}
             <span class="bracket-count">${group.athletes.length} 人</span>
           </h3>
           ${renderNameList(group.athletes)}
@@ -99,57 +108,71 @@
       })
       .join("");
 
-    return `<section class="division-block" data-division="child">
+    return `<section class="division-block" data-division="${escapeHtml(categoryValue)}">
       <header class="division-header">
-        <h2>兒童組</h2>
-        <span>${children.length} 人 · ${groups.length} 個級別</span>
+        <h2>${escapeHtml(label)}</h2>
+        <span>${athletes.length} 人 · ${groups.length} 個級別</span>
       </header>
       <div class="bracket-grid">${groupsHtml}</div>
     </section>`;
   }
 
-  function renderAdultSection(adults) {
-    const sorted = [...adults].sort((a, b) =>
+  function renderNameSection(categoryValue, athletes) {
+    const label = BjjStore.categoryLabel(categoryValue);
+    const sorted = [...athletes].sort((a, b) =>
       String(a.name || "").localeCompare(String(b.name || ""), "zh-Hant")
     );
 
-    return `<section class="division-block" data-division="adult">
+    return `<section class="division-block" data-division="${escapeHtml(categoryValue)}">
       <header class="division-header">
-        <h2>成人組</h2>
+        <h2>${escapeHtml(label)}</h2>
         <span>${sorted.length} 人</span>
       </header>
-      ${renderNameList(sorted)}
+      ${sorted.length ? renderNameList(sorted) : `<p class="empty-note">尚無${escapeHtml(label)}選手</p>`}
     </section>`;
   }
 
+  function renderCategorySection(categoryValue, athletes) {
+    if (categoryValue !== "adult") {
+      return renderBracketSection(categoryValue, athletes);
+    }
+    return renderNameSection(categoryValue, athletes);
+  }
+
   function filterLabel(filter) {
-    if (filter === "child") return "兒童組";
-    if (filter === "adult") return "成人組";
-    return "全部";
+    if (filter === "all") return "全部";
+    return BjjStore.categoryLabel(filter);
   }
 
   function render() {
     if (!filterEl || !root || !countEl) return;
 
     const filter = filterEl.value || "all";
-    const children = records.filter((item) => normalizeCategory(item.category) === "child");
-    const adults = records.filter((item) => normalizeCategory(item.category) === "adult");
+    const grouped = new Map(BjjStore.CATEGORIES.map((item) => [item.value, []]));
+    const legacyAdults = [];
 
-    const showChildren = filter === "all" || filter === "child";
-    const showAdults = filter === "all" || filter === "adult";
-    const visibleChildren = showChildren ? children : [];
-    const visibleAdults = showAdults ? adults : [];
+    records.forEach((item) => {
+      const category = normalizeCategory(item.category);
+      if (grouped.has(category)) grouped.get(category).push(item);
+      else if (category === "adult") legacyAdults.push(item);
+    });
 
     if (filterStatusEl) {
       filterStatusEl.textContent = `目前顯示：${filterLabel(filter)}`;
     }
 
+    const summary = BjjStore.CATEGORIES.map(
+      (item) => `${item.label} ${grouped.get(item.value).length}`
+    ).join("／");
+    const legacyNote = legacyAdults.length ? `／成人組 ${legacyAdults.length}` : "";
+
     if (filter === "all") {
-      countEl.textContent = `共 ${records.length} 位選手（兒童組 ${children.length}／成人組 ${adults.length}）`;
-    } else if (filter === "child") {
-      countEl.textContent = `兒童組 ${children.length} 位選手`;
+      countEl.textContent = `共 ${records.length} 位選手（${summary}${legacyNote}）`;
+    } else if (filter === "adult") {
+      countEl.textContent = `成人組 ${legacyAdults.length} 位選手`;
     } else {
-      countEl.textContent = `成人組 ${adults.length} 位選手`;
+      const selected = grouped.get(filter) || [];
+      countEl.textContent = `${filterLabel(filter)} ${selected.length} 位選手`;
     }
 
     if (!records.length) {
@@ -159,25 +182,20 @@
     }
 
     let html = "";
-
-    if (filter === "child") {
-      html = children.length
-        ? renderChildSection(children)
-        : `<p class="empty-note">兒童組目前尚無選手</p>`;
+    if (filter === "all") {
+      html = BjjStore.CATEGORIES.map((item) =>
+        renderCategorySection(item.value, grouped.get(item.value))
+      ).join("");
+      if (legacyAdults.length) html += renderNameSection("adult", legacyAdults);
     } else if (filter === "adult") {
-      html = adults.length
-        ? renderAdultSection(adults)
+      html = legacyAdults.length
+        ? renderNameSection("adult", legacyAdults)
         : `<p class="empty-note">成人組目前尚無選手</p>`;
     } else {
-      if (children.length) html += renderChildSection(children);
-      if (adults.length) html += renderAdultSection(adults);
-      if (!children.length && !adults.length) {
-        html = `<p class="empty-note">目前尚無報名資料</p>`;
-      } else if (!children.length) {
-        html = `${renderChildSection([])}${html}`;
-      } else if (!adults.length) {
-        html = `${html}${renderAdultSection([])}`;
-      }
+      const selected = grouped.get(filter) || [];
+      html = selected.length
+        ? renderCategorySection(filter, selected)
+        : `<p class="empty-note">${filterLabel(filter)}目前尚無選手</p>`;
     }
 
     root.innerHTML = html;

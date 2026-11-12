@@ -1,6 +1,16 @@
+const CATEGORIES = [
+  { value: "child", label: "兒童組", fee: 500, ageGroups: ["4-5", "6-7", "8-9", "10-11"] },
+  { value: "junior", label: "少年組", fee: 500, ageGroups: ["12-13", "14-15"] },
+  { value: "youth", label: "青少年組", fee: 500, ageGroups: ["16-17"] },
+  { value: "young", label: "青年組", fee: 500, ageGroups: [] },
+];
+
 const FEE_TABLE = {
-  adult: 800,
+  adult: 500,
   child: 500,
+  junior: 500,
+  youth: 500,
+  young: 500,
 };
 
 const AGE_GROUPS = [
@@ -25,6 +35,24 @@ const WEIGHT_CLASSES = [
   { value: "60-65", label: "60～65 kg" },
   { value: "65-70", label: "65～70 kg" },
 ];
+
+const GENDERS = [
+  { value: "male", label: "男子組" },
+  { value: "female", label: "女子組" },
+];
+
+const WEIGHT_TABLES = {
+  male: {
+    kids: ["u25", "u28", "u32", "u36", "u40", "u44", "u48", "u52", "o52"],
+    youth: ["u32", "u36", "u40", "u44", "u48", "u52", "u56", "u62", "u69", "u77", "o77"],
+    young: ["u48", "u52", "u56", "u62", "u69", "u77", "u85", "o85"],
+  },
+  female: {
+    kids: ["u22", "u25", "u28", "u32", "u36", "u40", "u44", "o44"],
+    youth: ["u25", "u28", "u32", "u36", "u40", "u44", "u48", "u52", "u57", "u63", "o63"],
+    young: ["u40", "u44", "u48", "u52", "u57", "u63", "u70", "o70"],
+  },
+};
 
 function getApiUrl() {
   const url = window.BJJ_CONFIG && window.BJJ_CONFIG.API_URL;
@@ -63,23 +91,70 @@ async function apiRequest(payload) {
 }
 
 function calcFee(category) {
-  return FEE_TABLE[category] || 0;
+  if (Object.prototype.hasOwnProperty.call(FEE_TABLE, category)) return FEE_TABLE[category];
+  return 500;
 }
 
 function formatFee(amount) {
   return `NT$ ${Number(amount || 0).toLocaleString("zh-TW")}`;
 }
 
+function getCategory(category) {
+  return CATEGORIES.find((item) => item.value === category) || null;
+}
+
+function categoryNeedsBracket(category) {
+  const item = getCategory(category);
+  return Boolean(item && item.ageGroups.length);
+}
+
+function ageOptionsFor(category) {
+  const item = getCategory(category);
+  if (!item) return [];
+  return AGE_GROUPS.filter((age) => item.ageGroups.includes(age.value));
+}
+
 function categoryLabel(category) {
-  return category === "child" ? "兒童組" : "成人組";
+  if (category === "adult") return "成人組";
+  return getCategory(category)?.label || category || "—";
 }
 
 function ageGroupLabel(value) {
   return AGE_GROUPS.find((item) => item.value === value)?.label || value || "—";
 }
 
+function weightBand(category) {
+  if (category === "child" || category === "junior") return "kids";
+  if (category === "youth") return "youth";
+  if (category === "young") return "young";
+  return "";
+}
+
+function weightOptionsFor(category, gender) {
+  const codes = WEIGHT_TABLES[gender]?.[weightBand(category)] || [];
+  return codes.map((value) => ({ value, label: weightClassLabel(value) }));
+}
+
+function genderLabel(gender) {
+  return GENDERS.find((item) => item.value === gender)?.label || "";
+}
+
+function weightSortIndex(value) {
+  const matched = String(value || "").match(/^(u|o)(\d+)$/);
+  if (!matched) {
+    const legacy = WEIGHT_CLASSES.findIndex((item) => item.value === value);
+    return legacy < 0 ? 9999 : legacy;
+  }
+  return Number(matched[2]) * 2 + (matched[1] === "o" ? 1 : 0);
+}
+
 function weightClassLabel(value) {
-  return WEIGHT_CLASSES.find((item) => item.value === value)?.label || value || "—";
+  const text = String(value || "");
+  const open = text.match(/^o(\d+)$/);
+  if (open) return `${open[1]}kg~`;
+  const under = text.match(/^u(\d+)$/);
+  if (under) return `~${under[1]}kg`;
+  return WEIGHT_CLASSES.find((item) => item.value === value)?.label || text || "—";
 }
 
 function fillSelectOptions(select, options, placeholder) {
@@ -125,7 +200,7 @@ async function listRegistrations() {
 
 function bindFeeSummary(form, summaryEl) {
   const refresh = () => {
-    const category = form.querySelector('input[name="category"]:checked')?.value || "adult";
+    const category = form.querySelector('input[name="category"]:checked')?.value || "child";
     const fee = calcFee(category);
     summaryEl.innerHTML = `報名費：<strong>${formatFee(fee)}</strong><span class="summary-note">／單場</span>`;
   };
@@ -149,37 +224,27 @@ function bindPaymentToggle(form) {
     }
   };
 
-  form.addEventListener("change", (e) => {
-    if (e.target.name === "payment") refresh();
-  });
+  form.addEventListener("change", refresh);
   refresh();
 }
 
 function bindCategoryFields(form) {
-  const childFields = form.querySelector("#child-fields");
-  const ageSelect = form.querySelector('select[name="ageGroup"]');
+  const weightFields = form.querySelector("#weight-fields");
   const weightSelect = form.querySelector('select[name="weightClass"]');
-
-  fillSelectOptions(ageSelect, AGE_GROUPS, "請選擇年齡區間");
-  fillSelectOptions(weightSelect, WEIGHT_CLASSES, "請選擇體重級別");
 
   const refresh = () => {
     const category = form.querySelector('input[name="category"]:checked')?.value;
-    const isChild = category === "child";
-    if (childFields) childFields.hidden = !isChild;
-    if (!isChild) {
-      if (ageSelect) ageSelect.value = "";
-      if (weightSelect) weightSelect.value = "";
-      const ageError = form.querySelector("#age-error");
-      const weightError = form.querySelector("#weight-error");
-      if (ageError) ageError.hidden = true;
-      if (weightError) weightError.hidden = true;
-    }
+    const gender = form.querySelector('input[name="gender"]:checked')?.value;
+    const options = weightOptionsFor(category, gender);
+    fillSelectOptions(
+      weightSelect,
+      options,
+      gender ? "請選擇體重級別" : "請先選擇男子組或女子組"
+    );
+    if (weightFields) weightFields.hidden = !category;
   };
 
-  form.addEventListener("change", (e) => {
-    if (e.target.name === "category") refresh();
-  });
+  form.addEventListener("change", refresh);
   refresh();
 }
 
@@ -191,8 +256,9 @@ function readFormData(form) {
     phone: String(fd.get("phone") || "").trim(),
     email: String(fd.get("email") || "").trim(),
     category,
-    ageGroup: category === "child" ? String(fd.get("ageGroup") || "").trim() : "",
-    weightClass: category === "child" ? String(fd.get("weightClass") || "").trim() : "",
+    gender: String(fd.get("gender") || "").trim(),
+    ageGroup: "",
+    weightClass: String(fd.get("weightClass") || "").trim(),
     payment: String(fd.get("payment") || ""),
     last5: String(fd.get("last5") || "").trim(),
   };
@@ -202,15 +268,15 @@ function validateRegistration(form, data) {
   const last5Error = form.querySelector("#last5-error");
   const emailError = form.querySelector("#email-error");
   const phoneError = form.querySelector("#phone-error");
-  const ageError = form.querySelector("#age-error");
   const weightError = form.querySelector("#weight-error");
+  const genderError = form.querySelector("#gender-error");
   let ok = true;
 
   if (last5Error) last5Error.hidden = true;
   if (emailError) emailError.hidden = true;
   if (phoneError) phoneError.hidden = true;
-  if (ageError) ageError.hidden = true;
   if (weightError) weightError.hidden = true;
+  if (genderError) genderError.hidden = true;
 
   if (!form.checkValidity()) {
     form.reportValidity();
@@ -227,12 +293,18 @@ function validateRegistration(form, data) {
     ok = false;
   }
 
-  if (data.category === "child") {
-    if (!AGE_GROUPS.some((item) => item.value === data.ageGroup)) {
-      if (ageError) ageError.hidden = false;
-      ok = false;
-    }
-    if (!WEIGHT_CLASSES.some((item) => item.value === data.weightClass)) {
+  if (!getCategory(data.category)) {
+    ok = false;
+  }
+
+  if (!GENDERS.some((item) => item.value === data.gender)) {
+    if (genderError) genderError.hidden = false;
+    ok = false;
+  }
+
+  if (getCategory(data.category)) {
+    const allowed = weightOptionsFor(data.category, data.gender);
+    if (!allowed.some((item) => item.value === data.weightClass)) {
       if (weightError) weightError.hidden = false;
       ok = false;
     }
@@ -264,12 +336,14 @@ function fillForm(form, record) {
   const cat = form.querySelector(`input[name="category"][value="${record.category}"]`);
   if (cat) cat.checked = true;
 
+  const gender = form.querySelector(`input[name="gender"][value="${record.gender}"]`);
+  if (gender) gender.checked = true;
+
   const pay = form.querySelector(`input[name="payment"][value="${record.payment}"]`);
   if (pay) pay.checked = true;
 
   form.dispatchEvent(new Event("change", { bubbles: true }));
 
-  setValue('select[name="ageGroup"]', record.ageGroup);
   setValue('select[name="weightClass"]', record.weightClass);
   form.dispatchEvent(new Event("change", { bubbles: true }));
 }
@@ -287,9 +361,19 @@ function setBusy(button, busy, busyText) {
 }
 
 window.BjjStore = {
+  CATEGORIES,
   FEE_TABLE,
   AGE_GROUPS,
+  getCategory,
+  categoryNeedsBracket,
+  ageOptionsFor,
   WEIGHT_CLASSES,
+  GENDERS,
+  WEIGHT_TABLES,
+  weightBand,
+  weightOptionsFor,
+  genderLabel,
+  weightSortIndex,
   calcFee,
   formatFee,
   categoryLabel,

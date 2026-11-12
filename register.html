@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>報名｜Jabari 巴西柔術館內賽</title>
+  <title>報名｜115年基隆市長樂國小家長會長盃柔術錦標賽</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet" />
@@ -13,7 +13,7 @@
   <div class="noise" aria-hidden="true"></div>
 
   <header class="site-header">
-    <a class="brand" href="index.html">Jabari<span></span></a>
+    <a class="brand" href="index.html">115年基隆市長樂國小家長會長盃柔術錦標賽<span></span></a>
     <nav class="nav">
       <a href="index.html">介紹</a>
       <a href="register.html" class="is-active">報名</a>
@@ -51,31 +51,43 @@
         <legend>參賽組別</legend>
         <div class="radio-row">
           <label class="radio">
-            <input type="radio" name="category" value="adult" required checked />
-            <span>成人組</span>
-          </label>
-          <label class="radio">
-            <input type="radio" name="category" value="child" />
+            <input type="radio" name="category" value="child" required checked />
             <span>兒童組</span>
           </label>
-          
+          <label class="radio">
+            <input type="radio" name="category" value="junior" />
+            <span>少年組</span>
+          </label>
+          <label class="radio">
+            <input type="radio" name="category" value="youth" />
+            <span>青少年組</span>
+          </label>
+          <label class="radio">
+            <input type="radio" name="category" value="young" />
+            <span>青年組</span>
+          </label>
         </div>
 
-        <div id="child-fields" class="child-box" hidden>
-          <label>
-            年齡區間
-            <select name="ageGroup">
-              <option value="">請選擇年齡區間</option>
-            </select>
+        <div class="radio-row">
+          <label class="radio">
+            <input type="radio" name="gender" value="male" required />
+            <span>男子組</span>
           </label>
-          <p class="field-error" id="age-error" hidden>請選擇兒童年齡區間</p>
+          <label class="radio">
+            <input type="radio" name="gender" value="female" />
+            <span>女子組</span>
+          </label>
+        </div>
+        <p class="field-error" id="gender-error" hidden>請選擇男子組或女子組</p>
+
+        <div id="weight-fields" class="child-box">
           <label>
             體重級別
             <select name="weightClass">
               <option value="">請選擇體重級別</option>
             </select>
           </label>
-          <p class="field-error" id="weight-error" hidden>請選擇兒童體重級別</p>
+          <p class="field-error" id="weight-error" hidden>請選擇體重級別</p>
         </div>
         
       </fieldset>
@@ -93,7 +105,7 @@
           </label>
         </div>
         <div id="transfer-fields" class="transfer-box">
-          <p class="bank-info">匯款帳號：808（玉山銀行）1234-567-890123<br />戶名：Jabari 巴西柔術有限公司</p>
+          <p class="bank-info">匯款帳號：812（台新銀行）28881016034917<br /></p>
           <label>
             匯款帳號末五碼
             <input type="text" name="last5" pattern="\d{5}" maxlength="5" inputmode="numeric" placeholder="例如 12345" />
@@ -127,7 +139,7 @@
   </main>
 
   <footer class="site-footer">
-    <p>Jabari 巴西柔術館內賽 · 報名資料僅供活動聯繫使用</p>
+    <p>115年基隆市長樂國小家長會長盃柔術錦標賽· 報名資料僅供活動聯繫使用</p>
   </footer>
 
   <script src="js/config.js"></script>

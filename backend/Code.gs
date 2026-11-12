@@ -5,11 +5,19 @@
  */
 
 var SHEET_NAME = "registrations";
-var FEE_TABLE = {
-  adult: 800,
-  child: 500,
+var CATEGORIES = {
+  child: { label: "兒童組", fee: 500, ages: ["4-5", "6-7", "8-9", "10-11"] },
+  junior: { label: "少年組", fee: 500, ages: ["12-13", "14-15"] },
+  youth: { label: "青少年組", fee: 500, ages: ["16-17"] },
+  young: { label: "青年組", fee: 500, ages: [] },
 };
-var AGE_GROUPS = ["4-5", "6-7", "8-9", "10-11", "12-13", "14-15", "16-17"];
+var KNOWN_CATEGORIES = {
+  adult: true,
+  child: true,
+  junior: true,
+  youth: true,
+  young: true,
+};
 var WEIGHT_CLASSES = [
   "20-25",
   "25-30",
@@ -22,6 +30,18 @@ var WEIGHT_CLASSES = [
   "60-65",
   "65-70",
 ];
+var WEIGHT_TABLES = {
+  male: {
+    kids: ["u25", "u28", "u32", "u36", "u40", "u44", "u48", "u52", "o52"],
+    youth: ["u32", "u36", "u40", "u44", "u48", "u52", "u56", "u62", "u69", "u77", "o77"],
+    young: ["u48", "u52", "u56", "u62", "u69", "u77", "u85", "o85"],
+  },
+  female: {
+    kids: ["u22", "u25", "u28", "u32", "u36", "u40", "u44", "o44"],
+    youth: ["u25", "u28", "u32", "u36", "u40", "u44", "u48", "u52", "u57", "u63", "o63"],
+    young: ["u40", "u44", "u48", "u52", "u57", "u63", "u70", "o70"],
+  },
+};
 var HEADERS = [
   "id",
   "name",
@@ -35,6 +55,7 @@ var HEADERS = [
   "fee",
   "createdAt",
   "updatedAt",
+  "gender",
 ];
 
 function doGet(e) {
@@ -140,7 +161,8 @@ function ensureHeaders_(sheet) {
 }
 
 function calcFee_(category) {
-  return FEE_TABLE[category] || 0;
+  if (CATEGORIES[category]) return CATEGORIES[category].fee;
+  return 500;
 }
 
 function normalizeName_(value) {
@@ -170,7 +192,7 @@ function rowToRecord_(row) {
   var createdAt = "";
   var updatedAt = "";
 
-  if (row[4] === "adult" || row[4] === "child") {
+  if (KNOWN_CATEGORIES[row[4]]) {
     category = row[4];
     ageGroup = row[5] || "";
     weightClass = row[6] || "";
@@ -198,6 +220,7 @@ function rowToRecord_(row) {
     category: category,
     ageGroup: String(ageGroup || ""),
     weightClass: String(weightClass || ""),
+    gender: KNOWN_CATEGORIES[row[4]] ? String(row[12] || "") : "",
     payment: payment,
     last5: last5 ? String(last5).replace(/\.0$/, "") : "",
     fee: fee,
@@ -239,6 +262,7 @@ function writeRecordRow_(sheet, rowIndex, record) {
       String(record.fee),
       String(record.createdAt),
       String(record.updatedAt),
+      String(record.gender || ""),
     ],
   ]);
 }
@@ -262,6 +286,7 @@ function createRegistration_(payload) {
     category: data.category,
     ageGroup: data.ageGroup,
     weightClass: data.weightClass,
+    gender: data.gender,
     payment: data.payment,
     last5: data.last5,
     fee: calcFee_(data.category),
@@ -305,6 +330,7 @@ function updateRegistration_(payload) {
     category: data.category,
     ageGroup: data.ageGroup,
     weightClass: data.weightClass,
+    gender: data.gender,
     payment: data.payment,
     last5: data.last5,
     fee: calcFee_(data.category),
@@ -329,6 +355,7 @@ function listRegistrations_() {
       category: record.category,
       ageGroup: record.ageGroup,
       weightClass: record.weightClass,
+      gender: record.gender,
     });
   }
   return json_({ ok: true, records: records });
@@ -342,8 +369,9 @@ function normalizeData_(payload) {
     phone: normalizePhone_(payload.phone),
     email: String(payload.email || "").trim(),
     category: category,
-    ageGroup: category === "child" ? String(payload.ageGroup || "").trim() : "",
-    weightClass: category === "child" ? String(payload.weightClass || "").trim() : "",
+    gender: String(payload.gender || "").trim(),
+    ageGroup: "",
+    weightClass: String(payload.weightClass || "").trim(),
     payment: payment,
     last5: payment === "transfer" ? String(payload.last5 || "").trim() : "",
   };
@@ -357,16 +385,16 @@ function validateData_(data) {
   if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
     return { ok: false, error: "電子信箱格式不正確" };
   }
-  if (data.category !== "adult" && data.category !== "child") {
+  var spec = CATEGORIES[data.category];
+  if (!spec) {
     return { ok: false, error: "組別不正確" };
   }
-  if (data.category === "child") {
-    if (AGE_GROUPS.indexOf(data.ageGroup) < 0) {
-      return { ok: false, error: "請選擇兒童年齡區間" };
-    }
-    if (WEIGHT_CLASSES.indexOf(data.weightClass) < 0) {
-      return { ok: false, error: "請選擇兒童體重級別" };
-    }
+  if (data.gender !== "male" && data.gender !== "female") {
+    return { ok: false, error: "請選擇男子組或女子組" };
+  }
+  var allowedWeights = weightOptionsFor_(data.category, data.gender);
+  if (allowedWeights.indexOf(data.weightClass) < 0) {
+    return { ok: false, error: "請選擇體重級別" };
   }
   if (data.payment !== "transfer" && data.payment !== "counter") {
     return { ok: false, error: "繳費方式不正確" };
@@ -377,8 +405,14 @@ function validateData_(data) {
   return { ok: true };
 }
 
+function categoryNeedsBracket_(category) {
+  return Boolean(CATEGORIES[category] && CATEGORIES[category].ages.length);
+}
+
 function categoryLabel_(category) {
-  return category === "child" ? "兒童組" : "成人組";
+  if (CATEGORIES[category]) return CATEGORIES[category].label;
+  if (category === "adult") return "成人組";
+  return category || "—";
 }
 
 function ageLabel_(value) {
@@ -394,8 +428,33 @@ function ageLabel_(value) {
   return map[value] || value || "—";
 }
 
+function weightBand_(category) {
+  if (category === "child" || category === "junior") return "kids";
+  if (category === "youth") return "youth";
+  if (category === "young") return "young";
+  return "";
+}
+
+function weightOptionsFor_(category, gender) {
+  var band = weightBand_(category);
+  if (!WEIGHT_TABLES[gender] || !WEIGHT_TABLES[gender][band]) return [];
+  return WEIGHT_TABLES[gender][band];
+}
+
+function genderLabel_(gender) {
+  if (gender === "male") return "男子組";
+  if (gender === "female") return "女子組";
+  return "";
+}
+
 function weightLabel_(value) {
-  return value ? value.replace("-", "～") + " kg" : "—";
+  var text = String(value || "");
+  var open = text.match(/^o(\d+)$/);
+  if (open) return open[1] + "kg~";
+  var under = text.match(/^u(\d+)$/);
+  if (under) return "~" + under[1] + "kg";
+  if (!text) return "—";
+  return text.replace("-", "～") + " kg";
 }
 
 function paymentLabel_(payment) {
@@ -415,10 +474,8 @@ function sendNoticeEmail_(record, type) {
   ];
   if (record.phone) lines.push("手機：" + record.phone);
   lines.push("組別：" + categoryLabel_(record.category));
-  if (record.category === "child") {
-    lines.push("年齡區間：" + ageLabel_(record.ageGroup));
-    lines.push("體重級別：" + weightLabel_(record.weightClass));
-  }
+  if (record.gender) lines.push("性別組別：" + genderLabel_(record.gender));
+  if (record.weightClass) lines.push("體重級別：" + weightLabel_(record.weightClass));
   lines = lines.concat([
     "繳費方式：" +
       paymentLabel_(record.payment) +
