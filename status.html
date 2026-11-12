@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>報名狀況｜115年基隆市長樂國小家長會長盃柔術錦標賽</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="noise" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <a class="brand" href="index.html">115年基隆市長樂國小家長會長盃柔術錦標賽<span></span></a>
+    <nav class="nav">
+      <a href="index.html">介紹</a>
+      <a href="rules.html">競賽規程</a>
+      <a href="register.html">報名</a>
+      <a href="athletes.html">選手列表</a>
+      <a href="edit.html">修改資料</a>
+      <a href="status.html" class="is-active">報名狀況</a>
+    </nav>
+  </header>
+
+  <main class="page page-status">
+    <div class="page-intro">
+      <h1>報名狀況</h1>
+      <p>查看目前所有報名資料，包含聯絡方式與付款狀態。</p>
+    </div>
+
+    <p class="list-count" id="status-count">載入中…</p>
+    <p class="field-error" id="status-error" hidden></p>
+    <div id="status-root" class="status-scroll" aria-live="polite"></div>
+  </main>
+
+  <footer class="site-footer">
+    <p>115年基隆市長樂國小家長會長盃柔術錦標賽 · 報名資料僅供活動聯繫使用</p>
+  </footer>
+
+  <script src="js/config.js?v=20261112n"></script>
+  <script src="js/storage.js?v=20261112n"></script>
+  <script src="js/status.js?v=20261112n"></script>
+</body>
+</html>

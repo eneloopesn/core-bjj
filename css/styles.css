@@ -831,6 +831,44 @@ select:focus {
   margin-top: 1.2rem;
 }
 
+.page-status {
+  max-width: 1180px;
+}
+
+.page-status .list-count {
+  margin-bottom: 1rem;
+}
+
+.status-scroll {
+  overflow-x: auto;
+}
+
+.status-table {
+  width: 100%;
+  min-width: 68rem;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.status-table th,
+.status-table td {
+  border-bottom: 1px solid var(--line);
+  padding: 0.7rem 0.65rem;
+  text-align: left;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.status-table thead th {
+  color: var(--gold);
+  font-weight: 700;
+  background: rgba(212, 168, 75, 0.08);
+}
+
+.status-table tbody tr:hover td {
+  background: rgba(22, 53, 43, 0.45);
+}
+
 .site-footer {
   padding: 1.5rem clamp(1.2rem, 4vw, 2.5rem) 2rem;
   border-top: 1px solid var(--line);

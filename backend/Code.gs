@@ -82,6 +82,7 @@ function handleRequest(payload) {
     if (action === "find") return findRegistration_(payload);
     if (action === "update") return updateRegistration_(payload);
     if (action === "list") return listRegistrations_();
+    if (action === "status") return listRegistrationStatus_();
     if (action === "ping") {
       return json_({ ok: true, message: "Jabari BJJ API ready", version: "inhouse-v1" });
     }
@@ -361,6 +362,28 @@ function listRegistrations_() {
       ageGroup: record.ageGroup,
       weightClass: record.weightClass,
       gender: record.gender,
+    });
+  }
+  return json_({ ok: true, records: records });
+}
+
+function listRegistrationStatus_() {
+  var sheet = getSheet_();
+  var values = sheet.getDataRange().getValues();
+  var records = [];
+  for (var i = 1; i < values.length; i++) {
+    if (!values[i][1] && !values[i][0]) continue;
+    var record = rowToRecord_(values[i]);
+    records.push({
+      name: record.name,
+      phone: record.phone,
+      email: record.email,
+      category: record.category,
+      weightClass: record.weightClass,
+      gender: record.gender,
+      birthDate: record.birthDate,
+      payment: record.payment,
+      last5: record.last5,
     });
   }
   return json_({ ok: true, records: records });

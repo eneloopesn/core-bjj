@@ -224,6 +224,11 @@ async function listRegistrations() {
   return result.records || [];
 }
 
+async function listRegistrationStatus() {
+  const result = await apiRequest({ action: "status" });
+  return result.records || [];
+}
+
 function selectedCategory(form) {
   return (
     form.querySelector('input[type="hidden"][name="category"]')?.value ||
@@ -595,6 +600,7 @@ window.BjjStore = {
   findRegistration,
   updateRegistration,
   listRegistrations,
+  listRegistrationStatus,
   bindBirthCategory,
   bindFeeSummary,
   categoryFromBirth,
