@@ -25,9 +25,20 @@
   </header>
 
   <main class="page">
+    <script>
+      window.BJJ_REGISTRATION_CLOSES_AT = Date.parse("2026-11-27T00:00:00+08:00");
+      if (Date.now() >= window.BJJ_REGISTRATION_CLOSES_AT) {
+        document.documentElement.classList.add("reg-closed");
+      }
+    </script>
     <div class="page-intro">
       <h1>報名表</h1>
       <p>請填寫選手資料完成報名。之後可用姓名修改資料。</p>
+    </div>
+
+    <div id="reg-closed" class="closed-note" hidden>
+      <h2>報名時間已經截止</h2>
+      <p>如果還需要報名請洽以下單位:<br />1. 基隆市長樂國民小學巴西柔術社<br />2. Jabari Jiu-Jitsu（伽戰柔術）</p>
     </div>
 
     <form id="reg-form" class="form" novalidate>
@@ -171,6 +182,6 @@
 
   <script src="js/config.js?v=20261112k"></script>
   <script src="js/storage.js?v=20261112m"></script>
-  <script src="js/register.js?v=20261112k"></script>
+  <script src="js/register.js?v=20261117a"></script>
 </body>
 </html>

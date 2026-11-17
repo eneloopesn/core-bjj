@@ -4,7 +4,23 @@
   const dialog = document.getElementById("success-dialog");
   const successName = document.getElementById("success-name");
   const formError = document.getElementById("form-error");
+  const closedNote = document.getElementById("reg-closed");
+  const intro = document.querySelector(".page-intro p");
   const submitBtn = form.querySelector('button[type="submit"]');
+  const closesAt = window.BJJ_REGISTRATION_CLOSES_AT;
+
+  function isRegistrationClosed() {
+    return Number.isFinite(closesAt) && Date.now() >= closesAt;
+  }
+
+  function showClosed() {
+    document.documentElement.classList.add("reg-closed");
+    form.hidden = true;
+    if (intro) intro.hidden = true;
+    if (closedNote) closedNote.hidden = false;
+  }
+
+  if (isRegistrationClosed()) showClosed();
 
   BjjStore.bindBirthCategory(form);
   BjjStore.bindFeeSummary(form, summary, { perMatch: false });
@@ -13,6 +29,10 @@
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
+    if (isRegistrationClosed()) {
+      showClosed();
+      return;
+    }
     if (formError) formError.hidden = true;
 
     const data = BjjStore.readFormData(form);
