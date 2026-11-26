@@ -9,8 +9,25 @@
   const lookupBtn = lookupForm.querySelector('button[type="submit"]');
   const saveBtn = editForm.querySelector('button[type="submit"]');
   const lookupNameInput = lookupForm.querySelector('input[name="name"]');
+  const closedNote = document.getElementById("edit-closed");
+  const intro = document.querySelector(".page-intro p");
+  const closesAt = window.BJJ_EDIT_CLOSES_AT;
 
   let currentName = null;
+
+  function isEditClosed() {
+    return Number.isFinite(closesAt) && Date.now() >= closesAt;
+  }
+
+  function showClosed() {
+    document.documentElement.classList.add("edit-closed");
+    lookupForm.hidden = true;
+    editForm.hidden = true;
+    if (intro) intro.hidden = true;
+    if (closedNote) closedNote.hidden = false;
+  }
+
+  if (isEditClosed()) showClosed();
 
   BjjStore.bindBirthCategory(editForm);
   BjjStore.bindFeeSummary(editForm, summary, { perMatch: false });
@@ -24,6 +41,10 @@
 
   lookupForm.addEventListener("submit", async (e) => {
     e.preventDefault();
+    if (isEditClosed()) {
+      showClosed();
+      return;
+    }
     lookupError.hidden = true;
     if (formError) formError.hidden = true;
 
@@ -52,6 +73,10 @@
 
   editForm.addEventListener("submit", async (e) => {
     e.preventDefault();
+    if (isEditClosed()) {
+      showClosed();
+      return;
+    }
     if (!currentName) return;
     if (formError) formError.hidden = true;
 

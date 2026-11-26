@@ -25,9 +25,20 @@
   </header>
 
   <main class="page">
+    <script>
+      window.BJJ_EDIT_CLOSES_AT = Date.parse("2026-11-27T00:00:00+08:00");
+      if (Date.now() >= window.BJJ_EDIT_CLOSES_AT) {
+        document.documentElement.classList.add("edit-closed");
+      }
+    </script>
     <div class="page-intro">
       <h1>修改報名資料</h1>
       <p>請輸入報名時的姓名查詢後再修改。</p>
+    </div>
+
+    <div id="edit-closed" class="closed-note" hidden>
+      <h2>修改時間已經截止</h2>
+      <p>如果還需要修改請洽承辦單位:<br />基隆市長樂國民小學巴西柔術社<br />或是 Jabari Jiu-Jitsu（伽戰柔術）</p>
     </div>
 
     <form id="lookup-form" class="form form-compact" novalidate>
@@ -181,6 +192,6 @@
 
   <script src="js/config.js?v=20261112l"></script>
   <script src="js/storage.js?v=20261112l"></script>
-  <script src="js/edit.js?v=20261112l"></script>
+  <script src="js/edit.js?v=20261126a"></script>
 </body>
 </html>

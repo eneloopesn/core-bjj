@@ -324,6 +324,13 @@ function findRegistration_(payload) {
 }
 
 function updateRegistration_(payload) {
+  if (registrationClosed_()) {
+    return json_({
+      ok: false,
+      error: "修改時間已經截止。如果還需要修改請洽承辦單位: 基隆市長樂國民小學巴西柔術社 或是 Jabari Jiu-Jitsu（伽戰柔術）",
+    });
+  }
+
   var data = normalizeData_(payload);
   var validation = validateData_(data, { requirePhone: true });
   if (!validation.ok) return json_(validation);

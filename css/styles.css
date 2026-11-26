@@ -767,11 +767,15 @@ select:focus {
 }
 
 html.reg-closed .page-intro p,
-html.reg-closed #reg-form {
+html.reg-closed #reg-form,
+html.edit-closed .page-intro p,
+html.edit-closed #lookup-form,
+html.edit-closed #edit-form {
   display: none !important;
 }
 
-html.reg-closed #reg-closed {
+html.reg-closed #reg-closed,
+html.edit-closed #edit-closed {
   display: block !important;
 }
 
