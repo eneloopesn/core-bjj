@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>安排友誼賽｜115年基隆市長樂國小家長會長盃柔術錦標賽</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="noise" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <a class="brand" href="index.html">115年基隆市長樂國小家長會長盃柔術錦標賽<span></span></a>
+    <nav class="nav">
+      <a href="index.html">介紹</a>
+      <a href="rules.html">競賽規程</a>
+      <a href="register.html">報名</a>
+      <a href="athletes.html">選手列表</a>
+      <a href="arrange.html">安排對戰</a>
+      <a href="matches.html">對戰表</a>
+      <a href="friendly.html" class="is-active">友誼賽</a>
+      <a href="edit.html">修改資料</a>
+    </nav>
+  </header>
+
+  <main class="page page-wide">
+    <div class="page-intro">
+      <h1>安排友誼賽對戰表</h1>
+      <p>一場比賽兩位選手。名單只列出各組別中只有一位選手的人。不需要的比賽可以刪除。</p>
+    </div>
+    <p class="save-status" id="save-status">載入中…</p>
+    <p class="field-error" id="friendly-error" hidden></p>
+    <div class="friendly-toolbar">
+      <button type="button" class="btn btn-primary" id="add-match">新增一場比賽</button>
+    </div>
+    <p class="list-count" id="friendly-count"></p>
+    <div id="friendly-root" aria-live="polite"></div>
+  </main>
+
+  <footer class="site-footer">
+    <p>115年基隆市長樂國小家長會長盃柔術錦標賽 · 報名資料僅供活動聯繫使用</p>
+  </footer>
+
+  <script src="js/config.js?v=20261127i"></script>
+  <script src="js/storage.js?v=20261127i"></script>
+  <script src="js/friendly.js?v=20261127i"></script>
+</body>
+</html>

@@ -22,6 +22,7 @@
       
       
       <a href="matches.html" class="is-active">對戰表</a>
+      
       <a href="edit.html">修改資料</a>
     </nav>
   </header>
@@ -29,7 +30,24 @@
   <main class="page page-wide">
     <div class="page-intro">
       <h1>對戰表</h1>
-      <p>顯示各組對戰。只有 3 人的組別是循環賽，超過 3 人仍依分組賽制。此頁不能修改。</p>
+      <p>顯示各組對戰。只有 3 人的組別是循環賽，超過 3 人仍依分組賽制。頁面下方另有友誼賽對戰表。此頁不能修改。</p>
+    </div>
+    <div class="list-toolbar">
+      <label class="filter-label" for="category-filter">
+        組別篩選
+        <select id="category-filter" name="category-filter">
+          <option value="all">全部</option>
+          <option value="child">兒童組</option>
+          <option value="junior">少年組</option>
+          <option value="youth">青少年組</option>
+          <option value="young">青年組</option>
+          <option value="friendly">友誼賽對戰表</option>
+        </select>
+      </label>
+      <div class="list-meta">
+        <p class="filter-status" id="filter-status">目前顯示：全部</p>
+        <p class="list-count" id="bracket-count">載入中…</p>
+      </div>
     </div>
     <p class="field-error" id="bracket-error" hidden></p>
     <div id="bracket-root" aria-live="polite"></div>
@@ -39,8 +57,8 @@
     <p>115年基隆市長樂國小家長會長盃柔術錦標賽 · 報名資料僅供活動聯繫使用</p>
   </footer>
 
-  <script src="js/config.js?v=20261127f"></script>
-  <script src="js/storage.js?v=20261127f"></script>
-  <script src="js/brackets.js?v=20261127h"></script>
+  <script src="js/config.js?v=20261127i"></script>
+  <script src="js/storage.js?v=20261127i"></script>
+  <script src="js/brackets.js?v=20261127k"></script>
 </body>
 </html>

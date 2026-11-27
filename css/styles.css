@@ -828,6 +828,51 @@ select:focus {
   }
 }
 
+.friendly-toolbar {
+  margin: 0 0 1rem;
+}
+
+#friendly-count {
+  margin-bottom: 1rem;
+}
+
+.friendly-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.friendly-match {
+  padding-bottom: 0.2rem;
+}
+
+.friendly-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 0.55rem;
+  align-items: center;
+}
+
+.friendly-row select {
+  min-width: 0;
+}
+
+.friendly-row .btn {
+  grid-column: 1 / -1;
+  justify-self: end;
+}
+
+@media (min-width: 860px) {
+  .friendly-row {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto;
+  }
+
+  .friendly-row .btn {
+    grid-column: auto;
+    justify-self: auto;
+    white-space: nowrap;
+  }
+}
+
 .athletes-root.is-updating {
   animation: list-fade 0.25s ease;
 }

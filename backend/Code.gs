@@ -85,6 +85,8 @@ function handleRequest(payload) {
     if (action === "status") return listRegistrationStatus_();
     if (action === "brackets") return loadBrackets_();
     if (action === "saveBrackets") return saveBrackets_(payload);
+    if (action === "friendly") return loadFriendly_();
+    if (action === "saveFriendly") return saveFriendly_(payload);
     if (action === "ping") {
       return json_({ ok: true, message: "Jabari BJJ API ready", version: "inhouse-v1" });
     }
@@ -630,6 +632,43 @@ function saveBrackets_(payload) {
   }
   sheet.getRange(2, 1, 1, 2).setValues([[JSON.stringify(orders), updatedAt]]);
   return json_({ ok: true, orders: orders, updatedAt: updatedAt });
+}
+
+function getFriendlySheet_() {
+  var ss = getSpreadsheet_();
+  var sheet = ss.getSheetByName("friendly");
+  if (!sheet) {
+    sheet = ss.insertSheet("friendly");
+    sheet.getRange(1, 1, 1, 2).setValues([["json", "updatedAt"]]);
+  }
+  return sheet;
+}
+
+function loadFriendly_() {
+  var sheet = getFriendlySheet_();
+  var json = String(sheet.getRange(2, 1).getValue() || "");
+  var updatedAt = String(sheet.getRange(2, 2).getValue() || "");
+  var matches = [];
+  if (json) {
+    try {
+      var parsed = JSON.parse(json) || {};
+      matches = parsed.matches || [];
+    } catch (err) {
+      matches = [];
+    }
+  }
+  return json_({ ok: true, matches: matches, updatedAt: updatedAt });
+}
+
+function saveFriendly_(payload) {
+  var matches = payload && payload.matches ? payload.matches : [];
+  var updatedAt = new Date().toISOString();
+  var sheet = getFriendlySheet_();
+  if (sheet.getLastRow() < 1) {
+    sheet.getRange(1, 1, 1, 2).setValues([["json", "updatedAt"]]);
+  }
+  sheet.getRange(2, 1, 1, 2).setValues([[JSON.stringify({ matches: matches }), updatedAt]]);
+  return json_({ ok: true, matches: matches, updatedAt: updatedAt });
 }
 
 function json_(obj) {

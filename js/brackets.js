@@ -3,10 +3,16 @@
   const root = document.getElementById("bracket-root");
   const errorEl = document.getElementById("bracket-error");
   const statusEl = document.getElementById("save-status");
+  const filterEl = document.getElementById("category-filter");
+  const filterStatusEl = document.getElementById("filter-status");
+  const countEl = document.getElementById("bracket-count");
   const STORAGE_KEY = "bjj-bracket-orders";
+  const FRIENDLY_KEY = "bjj-friendly-matches";
 
   let records = [];
   let orders = {};
+  let friendlyMatches = [];
+  let visibleFriendlyCount = 0;
 
   function escapeHtml(value) {
     return String(value || "")
@@ -254,13 +260,116 @@
     </section>`;
   }
 
+  function readFriendlyLocal() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(FRIENDLY_KEY) || "");
+      if (!parsed || typeof parsed !== "object") return { matches: [], updatedAt: "" };
+      return {
+        matches: Array.isArray(parsed.matches) ? parsed.matches : [],
+        updatedAt: parsed.updatedAt || "",
+      };
+    } catch {
+      return { matches: [], updatedAt: "" };
+    }
+  }
+
+  function athleteByKey(id) {
+    if (!id) return null;
+    return records.find((item) => String(item.id || item.name || "") === String(id)) || null;
+  }
+
+  function friendlyLabel(id) {
+    if (!id) return "尚未選擇";
+    const athlete = athleteByKey(id);
+    if (!athlete) return "此選手已不在名單";
+    const category = normalizeCategory(athlete.category);
+    const gender = BjjStore.genderLabel(athlete.gender) || "未填性別";
+    const weight = athlete.weightClass
+      ? BjjStore.weightClassLabel(athlete.weightClass, category, athlete.gender)
+      : "未填體重";
+    const name = athlete.name || "未填姓名";
+    return `${name}（${BjjStore.categoryLabel(category)}／${gender}／${weight}）`;
+  }
+
+  function renderFriendly() {
+    if (MODE !== "view") return "";
+    const filter = selectedFilter();
+    visibleFriendlyCount = 0;
+    const listed = friendlyMatches
+      .map((match, index) => ({ match, index }))
+      .filter(({ match }) => match && (match.left || match.right));
+    if (filter !== "all" && filter !== "friendly") {
+      visibleFriendlyCount = 0;
+      return "";
+    }
+    const visible = listed;
+    visibleFriendlyCount = visible.length;
+    const cards = visible.length
+      ? visible
+          .map(
+            ({ match, index }) => `<article class="match-card">
+        <p class="match-label">第 ${index + 1} 場</p>
+        <div class="match-row">
+          <p class="match-name">${escapeHtml(friendlyLabel(match.left))}</p>
+          <span class="match-vs">vs</span>
+          <p class="match-name">${escapeHtml(friendlyLabel(match.right))}</p>
+        </div>
+      </article>`
+          )
+          .join("")
+      : `<p class="empty-note">尚未安排友誼賽</p>`;
+    return `<section class="bracket-block" id="friendly-bracket">
+      <div class="bracket-meta">
+        <h2>友誼賽對戰表</h2>
+        <span>${visible.length} 場</span>
+      </div>
+      <div class="friendly-list">${cards}</div>
+    </section>`;
+  }
+
+  function filterLabel(filter) {
+    if (filter === "all") return "全部";
+    if (filter === "friendly") return "友誼賽對戰表";
+    return BjjStore.categoryLabel(filter);
+  }
+
+  function selectedFilter() {
+    return filterEl ? filterEl.value || "all" : "all";
+  }
+
   function render() {
-    const groups = groupAthletes(records);
-    if (!groups.length) {
-      root.innerHTML = `<p class="empty-note">目前尚無報名資料</p>`;
+    const allGroups = groupAthletes(records);
+    const filter = selectedFilter();
+    const showGroups = filter !== "friendly";
+    const groups = !showGroups
+      ? []
+      : filter === "all"
+        ? allGroups
+        : allGroups.filter((group) => group.category === filter);
+    if (filterStatusEl) filterStatusEl.textContent = `目前顯示：${filterLabel(filter)}`;
+    const friendlyHtml = renderFriendly();
+    if (countEl) {
+      if (filter === "friendly") {
+        countEl.textContent = `友誼賽 ${visibleFriendlyCount} 場`;
+      } else if (MODE === "view" && filter === "all") {
+        const groupText = allGroups.length ? `${groups.length} 個組別` : "目前沒有對戰組別";
+        countEl.textContent = `${groupText} · 友誼賽 ${visibleFriendlyCount} 場`;
+      } else {
+        countEl.textContent = allGroups.length ? `${groups.length} 個組別` : "目前沒有對戰組別";
+      }
+    }
+    if (filter === "friendly") {
+      root.innerHTML = friendlyHtml;
       return;
     }
-    root.innerHTML = `<div class="bracket-list">${groups.map(renderGroup).join("")}</div>`;
+    if (!allGroups.length) {
+      root.innerHTML = `<p class="empty-note">目前尚無報名資料</p>${friendlyHtml}`;
+      return;
+    }
+    const groupsHtml = groups.length
+      ? `<div class="bracket-list">${groups.map(renderGroup).join("")}</div>`
+      : `<p class="empty-note">${escapeHtml(filterLabel(filter))}目前沒有對戰組別</p>`;
+    root.innerHTML = `${groupsHtml}${friendlyHtml}`;
   }
 
   async function persist() {
@@ -306,6 +415,30 @@
       }
       const chosen = pickState(remote, readLocal());
       orders = chosen.orders || {};
+      if (MODE === "view") {
+        let remoteFriendly = null;
+        try {
+          remoteFriendly = await BjjStore.loadFriendly();
+        } catch {
+          remoteFriendly = null;
+        }
+        const localFriendly = readFriendlyLocal();
+        const remoteTime = Date.parse(remoteFriendly && remoteFriendly.updatedAt) || 0;
+        const localTime = Date.parse(localFriendly.updatedAt) || 0;
+        const picked =
+          remoteTime > 0 && remoteTime >= localTime
+            ? remoteFriendly
+            : localTime > 0
+              ? localFriendly
+              : { matches: [] };
+        friendlyMatches = (picked.matches || [])
+          .filter((item) => item && item.id)
+          .map((item) => ({
+            id: String(item.id),
+            left: String(item.left || ""),
+            right: String(item.right || ""),
+          }));
+      }
       render();
       if (MODE === "edit") setStatus(chosen.updatedAt ? "已載入先前的安排" : "尚未調整，目前是預設對戰");
     } catch (err) {
@@ -319,5 +452,6 @@
   }
 
   if (MODE === "edit") root.addEventListener("change", onChange);
+  if (filterEl) filterEl.addEventListener("change", render);
   load();
 })();

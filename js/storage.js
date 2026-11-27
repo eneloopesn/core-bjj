@@ -245,6 +245,22 @@ async function saveBrackets(orders) {
   };
 }
 
+async function loadFriendly() {
+  const result = await apiRequest({ action: "friendly" });
+  return {
+    matches: result.matches || [],
+    updatedAt: result.updatedAt || "",
+  };
+}
+
+async function saveFriendly(matches) {
+  const result = await apiRequest({ action: "saveFriendly", matches });
+  return {
+    matches: result.matches || [],
+    updatedAt: result.updatedAt || "",
+  };
+}
+
 function selectedCategory(form) {
   return (
     form.querySelector('input[type="hidden"][name="category"]')?.value ||
@@ -619,6 +635,8 @@ window.BjjStore = {
   listRegistrationStatus,
   loadBrackets,
   saveBrackets,
+  loadFriendly,
+  saveFriendly,
   bindBirthCategory,
   bindFeeSummary,
   categoryFromBirth,
