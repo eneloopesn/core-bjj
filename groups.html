@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>分組表｜115年基隆市長樂國小家長會長盃柔術錦標賽</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="noise" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <a class="brand" href="index.html">115年基隆市長樂國小家長會長盃柔術錦標賽<span></span></a>
+    <nav class="nav">
+      <a href="index.html">介紹</a>
+      <a href="rules.html">競賽規程</a>
+      <a href="register.html">報名</a>
+      <a href="athletes.html">選手列表</a>
+      <a href="groups.html" class="is-active">分組表</a>
+      <a href="edit.html">修改資料</a>
+    </nav>
+  </header>
+
+  <main class="page page-wide">
+    <div class="page-intro">
+      <h1>分組表</h1>
+      <p>依組別、性別與體重量級，用同一張表列出已報名選手。</p>
+    </div>
+
+    <div class="list-toolbar">
+      <label class="filter-label" for="category-filter">
+        組別篩選
+        <select id="category-filter" name="category-filter">
+          <option value="all">全部</option>
+          <option value="child">兒童組</option>
+          <option value="junior">少年組</option>
+          <option value="youth">青少年組</option>
+          <option value="young">青年組</option>
+        </select>
+      </label>
+      <div class="list-meta">
+        <p class="filter-status" id="filter-status">目前顯示：全部</p>
+        <p class="list-count" id="list-count">載入中…</p>
+      </div>
+    </div>
+
+    <p class="field-error" id="list-error" hidden></p>
+    <div id="athletes-root" class="athletes-root" aria-live="polite"></div>
+  </main>
+
+  <footer class="site-footer">
+    <p>115年基隆市長樂國小家長會長盃柔術錦標賽 · 報名資料僅供活動聯繫使用</p>
+  </footer>
+
+  <script src="js/config.js?v=20261127b"></script>
+  <script src="js/storage.js?v=20261127b"></script>
+  <script src="js/athletes.js?v=20261127b"></script>
+</body>
+</html>
