@@ -229,6 +229,22 @@ async function listRegistrationStatus() {
   return result.records || [];
 }
 
+async function loadBrackets() {
+  const result = await apiRequest({ action: "brackets" });
+  return {
+    orders: result.orders || {},
+    updatedAt: result.updatedAt || "",
+  };
+}
+
+async function saveBrackets(orders) {
+  const result = await apiRequest({ action: "saveBrackets", orders });
+  return {
+    orders: result.orders || {},
+    updatedAt: result.updatedAt || "",
+  };
+}
+
 function selectedCategory(form) {
   return (
     form.querySelector('input[type="hidden"][name="category"]')?.value ||
@@ -601,6 +617,8 @@ window.BjjStore = {
   updateRegistration,
   listRegistrations,
   listRegistrationStatus,
+  loadBrackets,
+  saveBrackets,
   bindBirthCategory,
   bindFeeSummary,
   categoryFromBirth,

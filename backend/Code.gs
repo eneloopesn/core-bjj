@@ -83,6 +83,8 @@ function handleRequest(payload) {
     if (action === "update") return updateRegistration_(payload);
     if (action === "list") return listRegistrations_();
     if (action === "status") return listRegistrationStatus_();
+    if (action === "brackets") return loadBrackets_();
+    if (action === "saveBrackets") return saveBrackets_(payload);
     if (action === "ping") {
       return json_({ ok: true, message: "Jabari BJJ API ready", version: "inhouse-v1" });
     }
@@ -592,6 +594,42 @@ function sendNoticeEmail_(record, type) {
     subject: subject,
     body: lines.join("\n"),
   });
+}
+
+function getBracketSheet_() {
+  var ss = getSpreadsheet_();
+  var sheet = ss.getSheetByName("brackets");
+  if (!sheet) {
+    sheet = ss.insertSheet("brackets");
+    sheet.getRange(1, 1, 1, 2).setValues([["json", "updatedAt"]]);
+  }
+  return sheet;
+}
+
+function loadBrackets_() {
+  var sheet = getBracketSheet_();
+  var json = String(sheet.getRange(2, 1).getValue() || "");
+  var updatedAt = String(sheet.getRange(2, 2).getValue() || "");
+  var orders = {};
+  if (json) {
+    try {
+      orders = JSON.parse(json) || {};
+    } catch (err) {
+      orders = {};
+    }
+  }
+  return json_({ ok: true, orders: orders, updatedAt: updatedAt });
+}
+
+function saveBrackets_(payload) {
+  var orders = payload && payload.orders ? payload.orders : {};
+  var updatedAt = new Date().toISOString();
+  var sheet = getBracketSheet_();
+  if (sheet.getLastRow() < 1) {
+    sheet.getRange(1, 1, 1, 2).setValues([["json", "updatedAt"]]);
+  }
+  sheet.getRange(2, 1, 1, 2).setValues([[JSON.stringify(orders), updatedAt]]);
+  return json_({ ok: true, orders: orders, updatedAt: updatedAt });
 }
 
 function json_(obj) {

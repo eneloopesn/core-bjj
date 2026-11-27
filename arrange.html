@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>安排對戰｜115年基隆市長樂國小家長會長盃柔術錦標賽</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body data-bracket-mode="edit">
+  <div class="noise" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <a class="brand" href="index.html">115年基隆市長樂國小家長會長盃柔術錦標賽<span></span></a>
+    <nav class="nav">
+      <a href="index.html">介紹</a>
+      <a href="rules.html">競賽規程</a>
+      <a href="register.html">報名</a>
+      <a href="athletes.html">選手列表</a>
+      <a href="groups.html">分組表</a>
+      <a href="arrange.html" class="is-active">安排對戰</a>
+      <a href="matches.html">對戰表</a>
+      <a href="edit.html">修改資料</a>
+    </nav>
+  </header>
+
+  <main class="page page-wide">
+    <div class="page-intro">
+      <h1>安排對戰</h1>
+      <p>3 人指定 1 位種子，另外 2 人先打，勝方再戰種子。4 人分成 2 對 2。5 人以上先分成兩組，再依人數套用同樣規則。每個位置都可改選選手。</p>
+    </div>
+    <p class="save-status" id="save-status">載入中…</p>
+    <p class="field-error" id="bracket-error" hidden></p>
+    <div id="bracket-root" aria-live="polite"></div>
+  </main>
+
+  <footer class="site-footer">
+    <p>115年基隆市長樂國小家長會長盃柔術錦標賽 · 報名資料僅供活動聯繫使用</p>
+  </footer>
+
+  <script src="js/config.js?v=20261127f"></script>
+  <script src="js/storage.js?v=20261127f"></script>
+  <script src="js/brackets.js?v=20261127g"></script>
+</body>
+</html>
