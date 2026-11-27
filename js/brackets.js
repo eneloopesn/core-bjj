@@ -134,7 +134,7 @@
   function formatText(count) {
     if (count <= 1) return "僅 1 人，不排對戰";
     if (count === 2) return "單場對戰";
-    if (count === 3) return "3 人，含 1 位種子";
+    if (count === 3) return "循環賽";
     const leftCount = Math.floor(count / 2);
     return `分成 ${leftCount} 人與 ${count - leftCount} 人`;
   }
@@ -209,11 +209,23 @@
     </div>`;
   }
 
+  function renderRobin(group, slots) {
+    const pairs = [
+      [slots[0], slots[1]],
+      [slots[0], slots[2]],
+      [slots[1], slots[2]],
+    ];
+    return `<div class="pool">${pairs
+      .map((pair, index) => renderMatch(group, { left: pair[0], right: pair[1] }, `第 ${index + 1} 場`))
+      .join("")}</div>`;
+  }
+
   function renderPlan(group, ordered) {
     const slots = ordered.map((athlete, index) => ({
       name: athlete.name || "未填姓名",
       index,
     }));
+    if (slots.length === 3) return renderRobin(group, slots);
     const node = buildNode(slots);
     if (node.kind === "solo") return sideHtml(group, node.slot);
     if (node.kind === "match") return renderMatch(group, node, "對戰");
