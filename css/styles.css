@@ -657,6 +657,53 @@ select:focus {
   gap: 2rem;
 }
 
+.athlete-scroll {
+  overflow-x: auto;
+}
+
+.athlete-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.athlete-table th,
+.athlete-table td {
+  border-bottom: 1px solid var(--line);
+  padding: 0.65rem 0.4rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.athlete-table thead th {
+  color: var(--gold);
+  font-weight: 700;
+  background: rgba(212, 168, 75, 0.08);
+  white-space: nowrap;
+}
+
+.athlete-table tbody th,
+.athlete-table .gender-cell,
+.athlete-table .count-cell {
+  white-space: nowrap;
+}
+
+.athlete-table .weight-cell {
+  white-space: normal;
+  min-width: 6.2rem;
+}
+
+.athlete-table tbody th {
+  color: var(--sand);
+  font-weight: 700;
+}
+
+.athlete-table .name-cell {
+  color: var(--sand-dim);
+  line-height: 1.7;
+  word-break: keep-all;
+}
+
 .athletes-root.is-updating {
   animation: list-fade 0.25s ease;
 }
